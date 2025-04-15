@@ -27,7 +27,9 @@ export default function AuthLayout({
           </div>
           <BlurImage src="/authbg.png" fill alt="bg" className="absolute" />
         </div>
-        {children}
+        <div className="flex h-full w-full items-center justify-center">
+          {children}
+        </div>
       </div>
       <FloatingThemeToggle />
     </Suspense>

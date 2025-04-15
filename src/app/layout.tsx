@@ -4,6 +4,7 @@ import { Roboto, Roboto_Condensed } from 'next/font/google'
 import { retrive_theme } from '~/actions/theme'
 import { Providers } from './provider'
 import { cn } from '~/lib/utils'
+import { Toaster } from '~/components/ui/sonner'
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -36,6 +37,7 @@ export default async function RootLayout({
           <main className="font-inter font-roboto relative mx-auto min-h-dvh w-full max-w-[1500px] bg-[#F5FAFF] dark:bg-gray-900">
             {children}
           </main>
+          <Toaster richColors position="top-center" />
         </Providers>
       </body>
     </html>

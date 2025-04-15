@@ -9,7 +9,7 @@ datasource db {
 }
 
 model user {
-  id               String           @id @default(uuid())
+  id               String           @id @default(uuid()) @db.Uuid
   name             String
   email            String           @unique
   password         String?
@@ -20,6 +20,9 @@ model user {
   country          String?
   last_seen        DateTime?
   two_step_enabled Boolean          @default(false)
+  created_at       DateTime         @default(now()) @db.Timestamptz()
+  updated_at       DateTime         @default(now()) @updatedAt @db.Timestamptz()
+  is_active        Boolean          @default(true)
   login_activities login_activity[]
   projects         project[]
   cad_drawings     cad_drawing[]
@@ -27,79 +30,99 @@ model user {
   settings         user_settings?
   profile_image    String?
   role             user_role        @default(USER)
+  notifications    notification[]   @relation("user_notifications")
 }
 
 model user_settings {
-  id                      String  @id @default(uuid())
-  user_id                 String  @unique
+  id                      String  @id @default(uuid()) @db.Uuid
+  user_id                 String  @unique @db.Uuid
   user                    user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   enable_notifications    Boolean @default(true)
   notify_material_changes Boolean @default(true)
   notify_system_updates   Boolean @default(true)
   theme                   String? @default("light")
   language                String? @default("en")
+
+  @@map("user_settings")
 }
 
 model login_activity {
-  id          String       @id @default(uuid())
-  user_id     String
+  id          String       @id @default(uuid()) @db.Uuid
+  user_id     String       @db.Uuid
   user        user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  login_time  DateTime     @default(now())
+  login_time  DateTime     @default(now()) @db.Timestamptz()
   status      login_status
   ip_address  String?
   device_info String?
   location    String?
+
+  @@index([user_id])
+  @@map("login_activities")
 }
 
 model project {
-  id           String        @id @default(uuid())
+  id           String        @id @default(uuid()) @db.Uuid
   name         String
   description  String?
-  user_id      String
+  user_id      String        @db.Uuid
   user         user          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
+  created_at   DateTime      @default(now()) @db.Timestamptz()
+  updated_at   DateTime      @updatedAt @db.Timestamptz()
   cad_drawings cad_drawing[]
+
+  @@index([user_id])
+  @@map("projects")
 }
 
 model cad_drawing {
-  id           String           @id @default(uuid())
+  id           String           @id @default(uuid()) @db.Uuid
   name         String
   file_path    String
-  project_id   String?
+  project_id   String?          @db.Uuid
   project      project?         @relation(fields: [project_id], references: [id], onDelete: SetNull)
-  user_id      String
+  user_id      String           @db.Uuid
   user         user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  uploaded_at  DateTime         @default(now())
+  uploaded_at  DateTime         @default(now()) @db.Timestamptz()
   measurements measurement[]
   materials    material_needs[]
+
+  @@index([user_id])
+  @@index([project_id])
+  @@map("cad_drawings")
 }
 
 model measurement {
-  id               String      @id @default(uuid())
-  drawing_id       String
+  id               String      @id @default(uuid()) @db.Uuid
+  drawing_id       String      @db.Uuid
   drawing          cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
   measurement_type String
   value            Float
   unit             String
   x_coordinate     Float?
   y_coordinate     Float?
-  created_at       DateTime    @default(now())
+  created_at       DateTime    @default(now()) @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@map("measurements")
 }
 
 model material_needs {
-  id          String      @id @default(uuid())
-  drawing_id  String
+  id          String      @id @default(uuid()) @db.Uuid
+  drawing_id  String      @db.Uuid
   drawing     cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
-  material_id String
+  material_id String      @db.Uuid
   material    material    @relation(fields: [material_id], references: [id], onDelete: Cascade)
   quantity    Float
   unit        String
-  created_at  DateTime    @default(now())
+  created_at  DateTime    @default(now()) @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@index([material_id])
+  @@map("material_needs")
 }
 
 model material {
-  id              String           @id @default(uuid())
+  id              String           @id @default(uuid()) @db.Uuid
   name            String
   description     String?
   unit_price      Float
@@ -107,30 +130,55 @@ model material {
   in_stock        Boolean          @default(true)
   material_needs  material_needs[]
   material_orders material_order[]
+
+  @@map("materials")
 }
 
 model material_order {
-  id          String       @id @default(uuid())
-  user_id     String
+  id          String       @id @default(uuid()) @db.Uuid
+  user_id     String       @db.Uuid
   user        user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  material_id String
+  material_id String       @db.Uuid
   material    material     @relation(fields: [material_id], references: [id], onDelete: Cascade)
   quantity    Float
   total_price Float
   status      order_status @default(PENDING)
-  created_at  DateTime     @default(now())
-  updated_at  DateTime     @updatedAt
+  created_at  DateTime     @default(now()) @db.Timestamptz()
+  updated_at  DateTime     @updatedAt @db.Timestamptz()
+
+  @@index([user_id])
+  @@index([material_id])
+  @@map("material_orders")
 }
 
 model testimonial {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   name        String
   position    String?
   company     String?
   content     String
   rating      Int      @default(5)
   is_featured Boolean  @default(false)
-  created_at  DateTime @default(now())
+  created_at  DateTime @default(now()) @db.Timestamptz()
+
+  @@map("testimonials")
+}
+
+model notification {
+  id         String            @id @default(uuid()) @db.Uuid
+  user_id    String            @db.Uuid
+  type       notification_type
+  title      String
+  message    String
+  is_read    Boolean           @default(false)
+  created_by String?           @db.Uuid
+  created_at DateTime          @default(now()) @db.Timestamptz()
+  updated_at DateTime          @default(now()) @updatedAt @db.Timestamptz()
+
+  user user @relation("user_notifications", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("notifications")
 }
 
 enum user_role {
@@ -149,4 +197,16 @@ enum order_status {
   APPROVED
   DELIVERED
   CANCELLED
+}
+
+enum notification_type {
+  DEPOSIT_CONFIRMATION
+  WITHDRAWAL_REQUEST
+  WITHDRAWAL_PROCESSED
+  WITHDRAWAL_DENIED
+  INTEREST_PAID
+  FUND_LOCK_EXPIRING
+  SYSTEM_NOTIFICATION
+  MATERIAL_CHANGE
+  SYSTEM_UPDATE
 }
