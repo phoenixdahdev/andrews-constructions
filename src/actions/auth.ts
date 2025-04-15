@@ -1,9 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { loginSchema, signupSchema } from "~/schemas/auth";
 import { compare_password } from "~/lib/utils";
 import { notification_type } from "prisma-client";
+import { loginSchema, signupSchema } from "~/schemas/auth";
 import { create_notification } from "~/services/notification-service";
 import { create_new_user, get_user_by_email, get_user_by_id } from "~/services/user-service";
 
@@ -67,7 +67,7 @@ export async function create_user(data: z.infer<typeof signupSchema>) {
 }
 
 
-export async function google_login(data: z.infer<typeof signupSchema>) {
+export async function google_login(data: { name?: string, email: string }) {
     let user
     user = await get_user_by_email(data.email)
     if (user) {
@@ -76,7 +76,11 @@ export async function google_login(data: z.infer<typeof signupSchema>) {
             success: false,
         }
     }
-    user = await create_new_user(data)
+    user = await create_new_user({
+        email: data.email,
+        name: data.name,
+        role: 'USER',
+    })
     await create_notification({
         user_id: user.id,
         type: notification_type.SYSTEM_NOTIFICATION,

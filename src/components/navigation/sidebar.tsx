@@ -57,7 +57,10 @@ const Sidebar = () => {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Button
+                className="rounded-lg p-2 transition-colors"
+                variant="ghost"
+              >
                 <LayoutGrid className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               </Button>
             </TooltipTrigger>

@@ -46,7 +46,6 @@ const Header = () => {
           <button className="relative cursor-pointer rounded-full bg-[#E3F2FF] p-2">
             <Bell className="h-5 w-5 text-gray-500" />
           </button>
-          <UserDropdown />
           <Button className="flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600">
             <span>Chat AI</span>
             <Sparkles className="h-4 w-4" />
@@ -64,6 +63,7 @@ const Header = () => {
               )}
             </SwitchPrimitives.Thumb>
           </SwitchPrimitives.Root>
+          <UserDropdown />
         </div>
       </div>
     </header>

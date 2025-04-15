@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -20,15 +20,21 @@ import { Checkbox } from 'ui/checkbox'
 import { Separator } from 'ui/separator'
 import { loginSchema } from '~/schemas/auth'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import GoogleLogo from '../icons/google-logo'
 import AppleLogo from '../icons/apple-logo'
+import { login } from '~/actions/auth'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-
+  const [isLoading, startTransition] = useTransition()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('redirect')
+  const router = useRouter()
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -39,18 +45,28 @@ export default function LoginForm() {
   })
 
   async function onSubmit(data: LoginFormValues) {
-    setIsLoading(true)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log(data)
-      // Handle login logic here
-    } catch (error) {
-      console.error('Login failed:', error)
-    } finally {
-      setIsLoading(false)
-    }
+    startTransition(async () => {
+      await login(data).then(async (res) => {
+        if (res.success) {
+          toast.success('Login successfully!', {
+            description: 'Welcome back to your account.',
+          })
+          await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            redirect: false,
+          })
+          const redirect = callbackUrl ?? '/'
+          setTimeout(() => {
+            router.push(redirect)
+          }, 2000)
+        } else {
+          toast.error(res.error ?? 'Unable to login', {
+            description: 'Please check your credentials and try again.',
+          })
+        }
+      })
+    })
   }
 
   return (
@@ -63,7 +79,12 @@ export default function LoginForm() {
       </div>
 
       <div className="flex gap-4">
-        <Button variant="outline" className="w-full" type="button">
+        <Button
+          variant="outline"
+          className="w-full"
+          type="button"
+          onClick={() => signIn('google', { redirectTo: '/' })}
+        >
           <GoogleLogo />
           Login with Google
         </Button>

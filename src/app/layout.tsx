@@ -1,10 +1,12 @@
 import 'styles'
+import { cn } from 'utils'
+import { auth } from 'auth'
 import type { Metadata } from 'next'
-import { Roboto, Roboto_Condensed } from 'next/font/google'
-import { retrive_theme } from '~/actions/theme'
 import { Providers } from './provider'
-import { cn } from '~/lib/utils'
+import { retrive_theme } from '~/actions/theme'
 import { Toaster } from '~/components/ui/sonner'
+import { SessionProvider } from 'next-auth/react'
+import { Roboto, Roboto_Condensed } from 'next/font/google'
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -28,17 +30,20 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const theme = await retrive_theme()
+  const session = await auth()
   return (
     <html lang="en">
       <body
         className={cn('antialiased', roboto.variable, robotoCondensed.variable)}
       >
-        <Providers defaultTheme={theme}>
-          <main className="font-inter font-roboto relative mx-auto min-h-dvh w-full max-w-[1500px] bg-[#F5FAFF] dark:bg-gray-900">
-            {children}
-          </main>
-          <Toaster richColors position="top-center" />
-        </Providers>
+        <SessionProvider session={session}>
+          <Providers defaultTheme={theme}>
+            <main className="font-inter font-roboto relative mx-auto min-h-dvh w-full max-w-[1500px] bg-[#F5FAFF] dark:bg-gray-900">
+              {children}
+            </main>
+            <Toaster richColors position="top-center" />
+          </Providers>
+        </SessionProvider>
       </body>
     </html>
   )

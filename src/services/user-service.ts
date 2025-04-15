@@ -6,13 +6,13 @@ import { signupSchema } from '~/schemas/auth'
 
 const db = prisma
 
-export async function create_new_user(data: z.infer<typeof signupSchema>) {
-  const hashedPassword = await hash_password(data.password)
+export async function create_new_user(data: Partial<z.infer<typeof signupSchema>>) {
+  const hashedPassword = data.password ? await hash_password(data.password) : undefined
   return db.user.create({
     data: {
-      email: data.email,
-      password: hashedPassword,
-      name: data.name,
+      email: data.email!,
+      password: hashedPassword ? hashedPassword : undefined,
+      name: data.name!,
       role: data.role as user_role,
     },
   })

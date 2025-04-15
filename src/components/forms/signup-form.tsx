@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Eye, EyeOff } from 'lucide-react'
-
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from 'ui/button'
 import {
   Form,
@@ -24,11 +23,17 @@ import { user_role } from 'prisma-client'
 import GoogleLogo from '../icons/google-logo'
 import AppleLogo from '../icons/apple-logo'
 import Link from 'next/link'
+import { create_user } from '~/actions/auth'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 type SignupFormValues = z.infer<typeof signupSchema>
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, startTransition] = useTransition()
+  const router = useRouter()
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -42,7 +47,22 @@ export default function SignupForm() {
   })
 
   function onSubmit(data: SignupFormValues) {
-    console.log(data)
+    startTransition(async () => {
+      await create_user(data).then((res) => {
+        if (res.success) {
+          toast.success('Account created successfully!', {
+            description: 'Please check your email for verification.',
+          })
+          setTimeout(() => {
+            router.push('/login')
+          }, 2000)
+        } else {
+          toast.error('Error creating account', {
+            description: res.error ?? 'Something went wrong',
+          })
+        }
+      })
+    })
   }
 
   return (
@@ -55,7 +75,12 @@ export default function SignupForm() {
       </div>
 
       <div className="flex gap-4">
-        <Button variant="outline" className="w-full" type="button">
+        <Button
+          variant="outline"
+          className="w-full"
+          type="button"
+          onClick={() => signIn('google', { redirectTo: '/' })}
+        >
           <GoogleLogo />
           Sign up with Google
         </Button>
@@ -80,7 +105,11 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter full name" {...field} />
+                  <Input
+                    placeholder="Enter full name"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,7 +123,11 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="example@example.com" {...field} />
+                  <Input
+                    placeholder="example@example.com"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -122,6 +155,7 @@ export default function SignupForm() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter password"
                       {...field}
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -129,6 +163,7 @@ export default function SignupForm() {
                       size="icon"
                       className="absolute top-0 right-0 h-full px-3 py-2"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -155,6 +190,7 @@ export default function SignupForm() {
                 <FormControl>
                   <Checkbox
                     checked={field.value}
+                    disabled={isLoading}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -178,8 +214,16 @@ export default function SignupForm() {
           <Button
             type="submit"
             className="w-full bg-[#1C99FF] text-white hover:bg-[#1C99FF]/80"
+            disabled={isLoading}
           >
-            Sign up
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please Wait ...
+              </>
+            ) : (
+              'Sign up'
+            )}
           </Button>
         </form>
       </Form>
