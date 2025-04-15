@@ -8,139 +8,121 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id               String          @id @default(uuid())
+model user {
+  id               String           @id @default(uuid())
   name             String
-  email            String          @unique
+  email            String           @unique
   password         String?
   provider         String?
-  date_joined      DateTime        @default(now())
+  date_joined      DateTime         @default(now())
   time             String?
   region           String?
   country          String?
   last_seen        DateTime?
-  two_step_enabled Boolean         @default(false)
-  login_activities LoginActivity[]
-  projects         Project[]
-  cad_drawings     CadDrawing[]
-  material_orders  MaterialOrder[]
-  settings         UserSettings?
+  two_step_enabled Boolean          @default(false)
+  login_activities login_activity[]
+  projects         project[]
+  cad_drawings     cad_drawing[]
+  material_orders  material_order[]
+  settings         user_settings?
   profile_image    String?
-  role             UserRole        @default(USER)
-
-  @@map("users")
+  role             user_role        @default(USER)
 }
 
-model UserSettings {
+model user_settings {
   id                      String  @id @default(uuid())
   user_id                 String  @unique
-  user                    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user                    user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   enable_notifications    Boolean @default(true)
   notify_material_changes Boolean @default(true)
   notify_system_updates   Boolean @default(true)
   theme                   String? @default("light")
   language                String? @default("en")
-
-  @@map("user_settings")
 }
 
-model LoginActivity {
-  id          String      @id @default(uuid())
+model login_activity {
+  id          String       @id @default(uuid())
   user_id     String
-  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  login_time  DateTime    @default(now())
-  status      LoginStatus
+  user        user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  login_time  DateTime     @default(now())
+  status      login_status
   ip_address  String?
   device_info String?
   location    String?
-
-  @@map("login_activities")
 }
 
-model Project {
-  id           String       @id @default(uuid())
+model project {
+  id           String        @id @default(uuid())
   name         String
   description  String?
   user_id      String
-  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  created_at   DateTime     @default(now())
-  updated_at   DateTime     @updatedAt
-  cad_drawings CadDrawing[]
-
-  @@map("projects")
+  user         user          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  cad_drawings cad_drawing[]
 }
 
-model CadDrawing {
-  id           String          @id @default(uuid())
+model cad_drawing {
+  id           String           @id @default(uuid())
   name         String
   file_path    String
   project_id   String?
-  project      Project?        @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  project      project?         @relation(fields: [project_id], references: [id], onDelete: SetNull)
   user_id      String
-  user         User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  uploaded_at  DateTime        @default(now())
-  measurements Measurement[]
-  materials    MaterialNeeds[]
-
-  @@map("cad_drawings")
+  user         user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  uploaded_at  DateTime         @default(now())
+  measurements measurement[]
+  materials    material_needs[]
 }
 
-model Measurement {
-  id               String     @id @default(uuid())
+model measurement {
+  id               String      @id @default(uuid())
   drawing_id       String
-  drawing          CadDrawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  drawing          cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
   measurement_type String
   value            Float
   unit             String
   x_coordinate     Float?
   y_coordinate     Float?
-  created_at       DateTime   @default(now())
-
-  @@map("measurements")
+  created_at       DateTime    @default(now())
 }
 
-model MaterialNeeds {
-  id          String     @id @default(uuid())
+model material_needs {
+  id          String      @id @default(uuid())
   drawing_id  String
-  drawing     CadDrawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  drawing     cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
   material_id String
-  material    Material   @relation(fields: [material_id], references: [id], onDelete: Cascade)
+  material    material    @relation(fields: [material_id], references: [id], onDelete: Cascade)
   quantity    Float
   unit        String
-  created_at  DateTime   @default(now())
-
-  @@map("material_needs")
+  created_at  DateTime    @default(now())
 }
 
-model Material {
-  id              String          @id @default(uuid())
+model material {
+  id              String           @id @default(uuid())
   name            String
   description     String?
   unit_price      Float
-  currency        String          @default("USD")
-  in_stock        Boolean         @default(true)
-  material_needs  MaterialNeeds[]
-  material_orders MaterialOrder[]
-
-  @@map("materials")
+  currency        String           @default("USD")
+  in_stock        Boolean          @default(true)
+  material_needs  material_needs[]
+  material_orders material_order[]
 }
 
-model MaterialOrder {
-  id          String      @id @default(uuid())
+model material_order {
+  id          String       @id @default(uuid())
   user_id     String
-  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user        user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
   material_id String
-  material    Material    @relation(fields: [material_id], references: [id], onDelete: Cascade)
+  material    material     @relation(fields: [material_id], references: [id], onDelete: Cascade)
   quantity    Float
   total_price Float
-  status      OrderStatus @default(PENDING)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
-
-  @@map("material_orders")
+  status      order_status @default(PENDING)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
 }
 
-model Testimonial {
+model testimonial {
   id          String   @id @default(uuid())
   name        String
   position    String?
@@ -149,22 +131,20 @@ model Testimonial {
   rating      Int      @default(5)
   is_featured Boolean  @default(false)
   created_at  DateTime @default(now())
-
-  @@map("testimonials")
 }
 
-enum UserRole {
+enum user_role {
   ADMIN
   USER
   CONTRACTOR
 }
 
-enum LoginStatus {
+enum login_status {
   SUCCESS
   FAILURE
 }
 
-enum OrderStatus {
+enum order_status {
   PENDING
   APPROVED
   DELIVERED
