@@ -124,7 +124,12 @@ function SidebarLogo() {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" variant="inset" {...props}>
+    <Sidebar
+      collapsible="icon"
+      variant="floating"
+      {...props}
+      className="left-[unset]"
+    >
       <SidebarHeader className="mb-2 h-16 justify-center max-md:mt-2">
         <SidebarLogo />
       </SidebarHeader>

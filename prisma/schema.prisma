@@ -8,3 +8,165 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id               String          @id @default(uuid())
+  name             String
+  email            String          @unique
+  password         String?
+  provider         String?
+  date_joined      DateTime        @default(now())
+  time             String?
+  region           String?
+  country          String?
+  last_seen        DateTime?
+  two_step_enabled Boolean         @default(false)
+  login_activities LoginActivity[]
+  projects         Project[]
+  cad_drawings     CadDrawing[]
+  material_orders  MaterialOrder[]
+  settings         UserSettings?
+  profile_image    String?
+  role             UserRole        @default(USER)
+
+  @@map("users")
+}
+
+model UserSettings {
+  id                      String  @id @default(uuid())
+  user_id                 String  @unique
+  user                    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  enable_notifications    Boolean @default(true)
+  notify_material_changes Boolean @default(true)
+  notify_system_updates   Boolean @default(true)
+  theme                   String? @default("light")
+  language                String? @default("en")
+
+  @@map("user_settings")
+}
+
+model LoginActivity {
+  id          String      @id @default(uuid())
+  user_id     String
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  login_time  DateTime    @default(now())
+  status      LoginStatus
+  ip_address  String?
+  device_info String?
+  location    String?
+
+  @@map("login_activities")
+}
+
+model Project {
+  id           String       @id @default(uuid())
+  name         String
+  description  String?
+  user_id      String
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  cad_drawings CadDrawing[]
+
+  @@map("projects")
+}
+
+model CadDrawing {
+  id           String          @id @default(uuid())
+  name         String
+  file_path    String
+  project_id   String?
+  project      Project?        @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  user_id      String
+  user         User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  uploaded_at  DateTime        @default(now())
+  measurements Measurement[]
+  materials    MaterialNeeds[]
+
+  @@map("cad_drawings")
+}
+
+model Measurement {
+  id               String     @id @default(uuid())
+  drawing_id       String
+  drawing          CadDrawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  measurement_type String
+  value            Float
+  unit             String
+  x_coordinate     Float?
+  y_coordinate     Float?
+  created_at       DateTime   @default(now())
+
+  @@map("measurements")
+}
+
+model MaterialNeeds {
+  id          String     @id @default(uuid())
+  drawing_id  String
+  drawing     CadDrawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  material_id String
+  material    Material   @relation(fields: [material_id], references: [id], onDelete: Cascade)
+  quantity    Float
+  unit        String
+  created_at  DateTime   @default(now())
+
+  @@map("material_needs")
+}
+
+model Material {
+  id              String          @id @default(uuid())
+  name            String
+  description     String?
+  unit_price      Float
+  currency        String          @default("USD")
+  in_stock        Boolean         @default(true)
+  material_needs  MaterialNeeds[]
+  material_orders MaterialOrder[]
+
+  @@map("materials")
+}
+
+model MaterialOrder {
+  id          String      @id @default(uuid())
+  user_id     String
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  material_id String
+  material    Material    @relation(fields: [material_id], references: [id], onDelete: Cascade)
+  quantity    Float
+  total_price Float
+  status      OrderStatus @default(PENDING)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  @@map("material_orders")
+}
+
+model Testimonial {
+  id          String   @id @default(uuid())
+  name        String
+  position    String?
+  company     String?
+  content     String
+  rating      Int      @default(5)
+  is_featured Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  CONTRACTOR
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILURE
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  DELIVERED
+  CANCELLED
+}
