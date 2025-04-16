@@ -5,13 +5,17 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ThemeProvider } from '~/context/theme-context'
 import { getQueryClient } from '~/lib/get-query-client'
+import { Session } from 'next-auth'
+import WelcomeModal from '~/components/miscellaneous/get-started-modal'
 
 export function Providers({
   children,
   defaultTheme,
+  session,
 }: {
   children: React.ReactNode
   defaultTheme?: ThemeState
+  session?: Session | null
 }) {
   const queryClient = getQueryClient()
   return (
@@ -22,6 +26,7 @@ export function Providers({
         position="left"
         buttonPosition="top-left"
       />
+      {session && <WelcomeModal />}
     </QueryClientProvider>
   )
 }

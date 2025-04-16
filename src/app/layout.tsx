@@ -37,7 +37,7 @@ export default async function RootLayout({
         className={cn('antialiased', roboto.variable, robotoCondensed.variable)}
       >
         <SessionProvider session={session}>
-          <Providers defaultTheme={theme}>
+          <Providers defaultTheme={theme} session={session}>
             <main className="font-inter font-roboto relative mx-auto min-h-dvh w-full max-w-[1500px] bg-[#F5FAFF] dark:bg-gray-900">
               {children}
             </main>
