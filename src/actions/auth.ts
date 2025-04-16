@@ -62,7 +62,7 @@ export async function create_user(data: z.infer<typeof signupSchema>) {
     })
     return {
         success: true,
-        user: user,
+        user: await get_user_by_id(user.id),
     }
 }
 
@@ -70,17 +70,13 @@ export async function create_user(data: z.infer<typeof signupSchema>) {
 export async function google_login(data: { name?: string, email: string }) {
     let user
     user = await get_user_by_email(data.email)
-    if (user) {
-        return {
-            error: 'User Already exist',
-            success: false,
-        }
+    if (!user) {
+        user = await create_new_user({
+            email: data.email,
+            name: data.name,
+            role: 'USER',
+        })
     }
-    user = await create_new_user({
-        email: data.email,
-        name: data.name,
-        role: 'USER',
-    })
     await create_notification({
         user_id: user.id,
         type: notification_type.SYSTEM_NOTIFICATION,
@@ -89,6 +85,6 @@ export async function google_login(data: { name?: string, email: string }) {
     })
     return {
         success: true,
-        user: user,
+        user: await get_user_by_id(user.id),
     }
 }
