@@ -25,7 +25,8 @@
       "ui/*": ["./src/components/ui/*"],
       "types": ["./src/types/global.d.ts"],
       "styles": ["./src/styles/globals.css"],
-      "prisma-client": ["./generated/client"]
+      // "prisma-client": ["./generated/client"]
+      // "prisma-client": ["@prisma/client"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

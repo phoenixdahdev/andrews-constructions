@@ -1,5 +1,5 @@
 import prisma from '~/lib/primsa'
-import type { notification_type } from 'prisma-client'
+import type { notification_type } from '@prisma/client'
 
 const db = prisma
 

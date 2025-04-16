@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { compare_password } from "~/lib/utils";
-import { notification_type } from "prisma-client";
+import { notification_type } from "@prisma/client";
 import { loginSchema, signupSchema } from "~/schemas/auth";
 import { create_notification } from "~/services/notification-service";
 import { create_new_user, get_user_by_email, get_user_by_id } from "~/services/user-service";

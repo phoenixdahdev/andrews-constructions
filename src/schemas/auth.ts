@@ -1,4 +1,4 @@
-import { user_role } from 'prisma-client'
+import { user_role } from '@prisma/client'
 import * as z from 'zod'
 
 export const loginSchema = z.object({

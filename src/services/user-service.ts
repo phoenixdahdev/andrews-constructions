@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import prisma from '~/lib/primsa'
-import { user_role } from 'prisma-client'
+import { user_role } from '@prisma/client'
 import { hash_password } from '~/lib/utils'
 import { signupSchema } from '~/schemas/auth'
 
