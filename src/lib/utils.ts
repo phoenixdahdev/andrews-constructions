@@ -19,3 +19,22 @@ export async function compare_password(
 ): Promise<boolean> {
   return compare(password, hashed_password)
 }
+
+
+export const formatFileSize = (bytes: number): string => {
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  if (bytes === 0) return 'n/a'
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return `${parseFloat((bytes / 1024 ** i).toFixed(2))} ${sizes[i]}`
+}
+export const generateId = (length: number = 14): string => {
+  let result = ''
+  const characters = 'ab_cdefghijklmnopqrstuvwxyz0123456789'
+  const charactersLength = characters.length
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+  }
+
+  return result
+}
