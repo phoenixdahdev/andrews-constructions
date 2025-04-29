@@ -1,90 +1,92 @@
-"use server";
+'use server'
 
-import { z } from "zod";
-import { compare_password } from "~/lib/utils";
-import { notification_type } from "@prisma/client";
-import { loginSchema, signupSchema } from "~/schemas/auth";
-import { create_notification } from "~/services/notification-service";
-import { create_new_user, get_user_by_email, get_user_by_id } from "~/services/user-service";
-
+import { z } from 'zod'
+import { compare_password } from '~/lib/utils'
+import { notification_type } from '@prisma/client'
+import { loginSchema, signupSchema } from '~/schemas/auth'
+import { create_notification } from '~/services/notification-service'
+import {
+  create_new_user,
+  get_user_by_email,
+  get_user_by_id,
+} from '~/services/user-service'
 
 export async function login(data: z.infer<typeof loginSchema>) {
-    const user = await get_user_by_email(data.email)
-    if (!user) {
-        return {
-            error: 'Invalid email or password',
-            success: false,
-        }
-    }
-    if (!user.password) {
-        return {
-            error: 'User created with Google authentication',
-            success: false,
-        }
-    }
-    const is_password_matched = await compare_password(
-        data.password,
-        user.password
-    )
-    if (!is_password_matched) {
-        return {
-            error: 'Invalid email or password',
-            success: false,
-        }
-    }
-    await create_notification({
-        user_id: user.id,
-        type: notification_type.SYSTEM_NOTIFICATION,
-        message: 'Login succesfully',
-        title: 'Account Login',
-    })
+  const user = await get_user_by_email(data.email)
+  if (!user) {
     return {
-        success: true,
-        user: await get_user_by_id(user.id),
+      error: 'Invalid email or password',
+      success: false,
     }
+  }
+  if (!user.password) {
+    return {
+      error: 'User created with Google authentication',
+      success: false,
+    }
+  }
+  const is_password_matched = await compare_password(
+    data.password,
+    user.password
+  )
+  if (!is_password_matched) {
+    return {
+      error: 'Invalid email or password',
+      success: false,
+    }
+  }
+  await create_notification({
+    user_id: user.id,
+    type: notification_type.SYSTEM_NOTIFICATION,
+    message: 'Login succesfully',
+    title: 'Account Login',
+  })
+  return {
+    success: true,
+    user: await get_user_by_id(user.id),
+  }
 }
 
 export async function create_user(data: z.infer<typeof signupSchema>) {
-    let user
-    user = await get_user_by_email(data.email)
-    if (user) {
-        return {
-            error: 'User Already exist',
-            success: false,
-        }
-    }
-    user = await create_new_user(data)
-    await create_notification({
-        user_id: user.id,
-        type: notification_type.SYSTEM_NOTIFICATION,
-        message: 'account created succesfully',
-        title: 'Account Creation',
-    })
+  let user
+  user = await get_user_by_email(data.email)
+  if (user) {
     return {
-        success: true,
-        user: await get_user_by_id(user.id),
+      error: 'User Already exist',
+      success: false,
     }
+  }
+  user = await create_new_user(data)
+  await create_notification({
+    user_id: user.id,
+    type: notification_type.SYSTEM_NOTIFICATION,
+    message: 'account created succesfully',
+    title: 'Account Creation',
+  })
+  return {
+    success: true,
+    user: await get_user_by_id(user.id),
+  }
 }
 
-
-export async function google_login(data: { name?: string, email: string }) {
-    let user
-    user = await get_user_by_email(data.email)
-    if (!user) {
-        user = await create_new_user({
-            email: data.email,
-            name: data.name,
-            role: 'USER',
-        })
-    }
-    await create_notification({
-        user_id: user.id,
-        type: notification_type.SYSTEM_NOTIFICATION,
-        message: 'account created succesfully',
-        title: 'Account Creation',
+export async function google_login(data: { name?: string; email: string }) {
+  let user
+  user = await get_user_by_email(data.email)
+  if (!user) {
+    user = await create_new_user({
+      email: data.email,
+      name: data.name,
+      role: 'USER',
     })
-    return {
-        success: true,
-        user: await get_user_by_id(user.id),
-    }
+  }
+  await create_notification({
+    user_id: user.id,
+    type: notification_type.SYSTEM_NOTIFICATION,
+    message: 'account created succesfully',
+    title: 'Account Creation',
+  })
+  return {
+    success: true,
+    user: await get_user_by_id(user.id),
+  }
 }
