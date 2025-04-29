@@ -6,14 +6,24 @@ import { signupSchema } from '~/schemas/auth'
 
 const db = prisma
 
-export async function create_new_user(data: Partial<z.infer<typeof signupSchema>>) {
-  const hashedPassword = data.password ? await hash_password(data.password) : undefined
+export async function create_new_user(
+  data: Partial<z.infer<typeof signupSchema>>
+) {
+  const hashedPassword = data.password
+    ? await hash_password(data.password)
+    : undefined
   return db.user.create({
     data: {
       email: data.email!,
       password: hashedPassword ? hashedPassword : undefined,
       name: data.name!,
       role: data.role as user_role,
+      settings: {
+        create: {},
+      },
+    },
+    include: {
+      settings: true,
     },
   })
 }
@@ -28,6 +38,9 @@ export async function get_user_by_id(id: string) {
       role: true,
       created_at: true,
       is_active: true,
+      profile_image: true,
+      settings: true,
+      two_step_enabled: true,
     },
   })
 }
@@ -57,6 +70,9 @@ export async function update_user(
   data: {
     email?: string
     name?: string
+    profile_image?: string
+    two_step_enabled?: boolean
+    password?: string
   }
 ) {
   return db.user.update({
@@ -73,3 +89,24 @@ export async function change_password(id: string, newPassword: string) {
   })
 }
 
+export async function update_user_notification_preference(
+  id: string,
+  data: {
+    enable_notifications?: boolean
+    notify_material_changes?: boolean
+    notify_system_updates?: boolean
+  }
+) {
+  return db.user_settings.update({
+    where: { user_id: id },
+    data,
+  })
+}
+export async function get_user_security_settings(id: string) {
+  return db.user.findUnique({
+    where: { id },
+    select: {
+      password: true,
+    },
+  })
+}
