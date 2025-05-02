@@ -7,7 +7,7 @@ import { useTheme } from '~/context/theme-context'
 import UserDropdown from '../miscellaneous/user-dropdown'
 import * as SwitchPrimitives from '@radix-ui/react-switch'
 import BlurImage from '~/components/miscellaneous/blur-image'
-import { Search, Bell, Sparkles, Moon, Sun } from 'lucide-react'
+import { Search, Bell, Moon, Sun } from 'lucide-react'
 import { useAIDrawerStore } from '~/hooks/use-ai-drawer-store'
 
 const Header = () => {

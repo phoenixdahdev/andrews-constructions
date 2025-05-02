@@ -32,6 +32,7 @@ export async function uploadS3File(formData: FormData) {
 
     const file_id = formData.get('file_id') as string
     const file_type = formData.get('file_type') as string
+    const file_name = formData.get('name')
     const folderName = (formData.get('folder_name') as string) || 'images'
     if (!file) return
     try {
@@ -56,7 +57,7 @@ export async function uploadS3File(formData: FormData) {
             Body: buffer,
             ContentType: file.type,
             Metadata: {
-                name: file.name,
+                name: file_name ? (file_name as string) : file.name,
                 type: file_type,
                 size: formatFileSize(file.size),
                 file_id,
