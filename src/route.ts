@@ -1,4 +1,4 @@
-export const apiAuthPrefix = '/api/auth'
+export const apiAuthPrefix = '/api'
 
 /**
  * The default redirect after login
