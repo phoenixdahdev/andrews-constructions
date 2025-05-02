@@ -263,3 +263,15 @@
       57px 0 0 7px;
   }
 }
+
+.get-started-button {
+  border-radius: var(--Radius-M, 8px);
+  border: 2px solid var(--Colors-Primary-400, #8eccff);
+  background: var(--Colors-Primary-800, #1c99ff);
+
+  display: flex;
+  padding: var(--Spacing-3, 12px) var(--Spacing-6, 24px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--Spacing-Gap-XS, 8px);
+}

@@ -8,9 +8,11 @@ import UserDropdown from '../miscellaneous/user-dropdown'
 import * as SwitchPrimitives from '@radix-ui/react-switch'
 import BlurImage from '~/components/miscellaneous/blur-image'
 import { Search, Bell, Sparkles, Moon, Sun } from 'lucide-react'
+import { useAIDrawerStore } from '~/hooks/use-ai-drawer-store'
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme()
+  const { openDrawer } = useAIDrawerStore()
   const handleThemeToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     toggleTheme({ x: e.clientX, y: e.clientY })
   }
@@ -46,9 +48,12 @@ const Header = () => {
           <button className="relative cursor-pointer rounded-full bg-[#E3F2FF] p-2">
             <Bell className="h-5 w-5 text-gray-500" />
           </button>
-          <Button className="flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600">
+          <Button
+            className="flex items-center justify-center gap-2 rounded-xl border-2 border-[#8ECCFF] bg-[#1C99FF] px-6 py-3 text-white hover:bg-blue-600 disabled:opacity-50"
+            onClick={openDrawer}
+          >
             <span>Chat AI</span>
-            <Sparkles className="h-4 w-4" />
+            <BlurImage src="/magic-wand-01.png" alt="" height={20} width={20} />
           </Button>
           <SwitchPrimitives.Root
             checked={theme === 'dark'}
