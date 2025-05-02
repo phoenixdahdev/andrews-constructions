@@ -275,3 +275,31 @@
   align-items: center;
   gap: var(--Spacing-Gap-XS, 8px);
 }
+
+::-webkit-scrollbar {
+  width: 3px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1c99ff;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #157dd8;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
