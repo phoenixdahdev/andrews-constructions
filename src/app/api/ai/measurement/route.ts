@@ -89,6 +89,6 @@ export async function POST(req: NextRequest) {
         })
     } catch (error) {
         console.error("Error analyzing floor plan:", error)
-        return NextResponse.json({ error: "Failed to analyze floor plan", details: error.message }, { status: 500 })
+        return NextResponse.json({ error: "Failed to analyze floor plan", details: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
     }
 }
