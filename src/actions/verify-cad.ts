@@ -1,6 +1,6 @@
 import { generateText } from "ai"
-import { google } from "./google"
 import { getEnvVariables } from "./getenv"
+import { createGoogleGenerativeAI, } from "@ai-sdk/google"
 
 /**
  * Validates if a file is a CAD drawing using Google's Gemini AI
@@ -10,7 +10,13 @@ import { getEnvVariables } from "./getenv"
 export async function validateCadFile(file: File): Promise<boolean> {
     const base64 = await fileToBase64(file)
 
-    const { SYSTEM_FILE_VALIDATOR_PROMPT } = await getEnvVariables("SYSTEM_FILE_VALIDATOR_PROMPT")
+    const { SYSTEM_FILE_VALIDATOR_PROMPT, GOOGLE_GENERATIVE_AI_API_KEY } = await getEnvVariables("SYSTEM_FILE_VALIDATOR_PROMPT", "GOOGLE_GENERATIVE_AI_API_KEY")
+
+
+    const google = createGoogleGenerativeAI({
+        apiKey: GOOGLE_GENERATIVE_AI_API_KEY,
+    })
+
     try {
         const fileName = file.name
         const fileExtension = fileName.split(".").pop()?.toLowerCase() || ""
@@ -35,6 +41,7 @@ export async function validateCadFile(file: File): Promise<boolean> {
 
         const { text: result } = await generateText({
             model: google("gemini-2.5-pro-exp-03-25"),
+
 
             system: SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n'),
             prompt: `
@@ -87,7 +94,6 @@ function fileToBase64(file: File): Promise<string> {
         reader.readAsDataURL(file)
         reader.onload = () => {
             const result = reader.result as string
-            // We actually want to keep the full data URL for image analysis
             resolve(result)
         }
         reader.onerror = (error) => reject(error)

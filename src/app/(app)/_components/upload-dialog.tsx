@@ -9,7 +9,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { ArrowRight, FileIcon, X } from 'lucide-react'
+import { ArrowRight, FileIcon, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useUploadDialogStore } from '~/hooks/use-upload-dialog-store'
 import BlurImage from '~/components/miscellaneous/blur-image'
@@ -165,6 +165,36 @@ export function UploadDialog() {
                   <span className="sr-only">Remove file</span>
                 </Button>
               </div>
+              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-4">
+                  {getFileIcon(fileState.uploadFile.file.name)}
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-medium text-gray-700">
+                        {fileState.uploadFile.file.name}
+                      </span>
+                      <span className="text-gray-400">
+                        {fileState.uploadFile.progress}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className="h-full rounded-full bg-blue-500"
+                        style={{ width: `${fileState.uploadFile.progress}%` }}
+                      ></div>
+                    </div>
+                    <div className="mt-1 text-sm text-gray-500">
+                      {Math.round(fileState.uploadFile.file.size / 1024)}KB
+                    </div>
+                  </div>
+                  <button
+                    onClick={removeFile}
+                    className="text-red-500 transition-colors hover:text-red-700"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid gap-2">
@@ -202,7 +232,8 @@ export function UploadDialog() {
                       id="file-upload"
                       type="file"
                       className="hidden"
-                      accept=".dwg,.dxf,.pdf,image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                      accept=".dwg,.dxf,.pdf"
+                      // accept=".dwg,.dxf,.pdf,image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                       onChange={handleFileChange}
                     />
                   </label>
