@@ -2,7 +2,9 @@
 
 
 import { cad_drawing } from "@prisma/client"
+import { cookies } from "next/headers"
 import { auth } from "~/auth"
+import { inDevEnvironment } from "~/lib/utils"
 import { create_cad_service, get_cad, get_cads } from "~/services/cads-service"
 import { ServiceResponse } from "~/types/global"
 
@@ -93,4 +95,23 @@ export async function get_card(id: string): Promise<ServiceResponse<cad_drawing>
             data: null,
         };
     }
+}
+
+
+
+export async function set_current_cad(cad_id: string) {
+    const cookie = await cookies();
+    cookie.set("current_cad", cad_id, {
+        httpOnly: true,
+        secure: !inDevEnvironment,
+        maxAge: 60 * 60 * 24,
+        path: "/",
+    });
+    return cad_id;
+}
+
+export async function get_current_cad() {
+    const cookie = await cookies();
+    const current_cad = cookie.get("current_cad");
+    return current_cad?.value;
 }

@@ -8,10 +8,13 @@ import { useSearch } from '~/hooks/use-search'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import BlurImage from '~/components/miscellaneous/blur-image'
+import { useRouter } from 'next/navigation'
+import { set_current_cad } from '~/actions/cad'
 
 const HomePage = () => {
   const { isPending, isLoading, data, isError } = useCadDrawings()
   const { search } = useSearch()
+  const router = useRouter()
 
   const getFileIcon = (fileType: string) => {
     if (fileType.includes('pdf')) {
@@ -54,7 +57,7 @@ const HomePage = () => {
 
   return isLoading || isPending ? (
     <LoadingScreen />
-  ) : !data?.success || !data?.data?.length || isError ? (
+  ) : !data?.success || !filteredFiles?.length || isError ? (
     <EmptyState />
   ) : (
     <div className="mx-auto w-full">
@@ -66,9 +69,15 @@ const HomePage = () => {
           {files.map((file) => (
             <Card
               key={file.id}
-              className="mb-4 cursor-pointer rounded-[8px] border border-[#E7E7E7]"
+              onClick={async () => {
+                await set_current_cad(file.id)
+                router.push(
+                  `/cad/${file.name.replace(' ', '-').toLocaleLowerCase()}`
+                )
+              }}
+              className="mb-4 cursor-pointer rounded-[8px] border border-[#E7E7E7] transition duration-200 ease-in-out dark:border-[#2A2A2A]"
             >
-              <CardContent className="p-4">
+              <CardContent className="px-4">
                 <div className="flex items-center">
                   <div className="mr-4 h-16 w-16 flex-shrink-0 overflow-hidden rounded bg-gray-100">
                     <BlurImage
@@ -83,7 +92,7 @@ const HomePage = () => {
                   <div className="flex-grow">
                     <h3 className="text-lg font-medium">{file.name}</h3>
                     <p className="text-gray-500">
-                      {format(file.uploaded_at, 'MMM d, yyyy')}
+                      {format(file.uploaded_at, 'h:mma')}
                     </p>
                   </div>
                   <div className="flex space-x-2">
