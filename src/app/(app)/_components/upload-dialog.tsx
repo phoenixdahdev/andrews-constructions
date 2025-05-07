@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react'
+import React, { useTransition } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,14 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { ArrowRight, FileIcon } from 'lucide-react'
+import { ArrowRight, FileIcon, X } from 'lucide-react'
 import { useState } from 'react'
 import { useUploadDialogStore } from '~/hooks/use-upload-dialog-store'
 import BlurImage from '~/components/miscellaneous/blur-image'
 import { cn } from '~/lib/utils'
+import { validateCadFile } from '~/actions/verify-cad'
+import { Spinner } from '~/components/miscellaneous/spinner'
+import { toast } from 'sonner'
 
 export function UploadDialog() {
   const {
@@ -28,6 +31,7 @@ export function UploadDialog() {
     reset,
   } = useUploadDialogStore()
   const [isDragging, setIsDragging] = useState(false)
+  const [isVerifying, startVerifying] = useTransition()
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -38,21 +42,42 @@ export function UploadDialog() {
     setIsDragging(false)
   }
 
+  const processFile = (file: File | null) => {
+    if (!file) {
+      toast.error('No file detected', {
+        description: 'Please drag and drop a valid CAD file (DWG, DXF, or PDF)',
+      })
+      return
+    }
+    startVerifying(async () => {
+      try {
+        const isValid = await validateCadFile(file)
+        if (isValid) {
+          setFile(file)
+        } else {
+          toast.error('File validation failed', {
+            description: 'Please upload a valid CAD file (DWG, DXF, or PDF)',
+          })
+        }
+      } catch (err) {
+        console.error('Error validating file:', err)
+        toast.error('An error occurred during validation', {
+          description: 'Please try again later',
+        })
+      }
+    })
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0])
-      simulateUpload()
-    }
+    const file = e.dataTransfer.files[0]
+    processFile(file)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-      simulateUpload()
-    }
+    const file = e.target.files?.[0] || null
+    processFile(file)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -60,6 +85,7 @@ export function UploadDialog() {
       openDialog()
     } else {
       closeDialog()
+      removeFile()
     }
   }
 
@@ -72,24 +98,11 @@ export function UploadDialog() {
     reset()
   }
 
-  // Simulate file upload progress
-  const simulateUpload = () => {
-    let progress = 0
-    const interval = setInterval(() => {
-      progress += 5
-      setProgress(progress)
-      if (progress >= 100) {
-        clearInterval(interval)
-      }
-    }, 200)
-  }
-
-  // Get file icon based on file type
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase()
 
     if (extension === 'pdf') {
-      return <FileIcon className="h-5 w-5 text-red-500" />
+      return <BlurImage src="/pdf.png" alt="pdf" width={30} height={30} />
     } else if (
       ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')
     ) {
@@ -120,64 +133,90 @@ export function UploadDialog() {
               placeholder="Enter a title for your CAD drawing..."
               value={fileState.title}
               onChange={(e) => setTitle(e.target.value)}
+              disabled={isVerifying}
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="file" className="text-base font-medium">
-              Upload CAD drawing<span className="text-red-500">*</span>
-            </Label>
-            <div
-              className={cn(
-                'rounded-md border-2 border-dashed p-8 text-center',
-                isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-              )}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <label
-                  htmlFor="file-upload"
-                  className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-800 px-6 py-2 text-blue-500 hover:bg-blue-50"
-                  style={{
-                    gap: 'var(--Spacing-Gap-XS, 8px)',
-                    borderRadius: 'var(--Radius-4, 8px)',
-                    border: '1.5px solid var(--Colors-Primary-800, #1C99FF)',
-                    padding: '8px 24px',
+          {isVerifying ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-gray-200 p-8">
+              <Spinner size="lg" className="text-blue-500" />
+              <p className="text-center font-medium text-gray-700">
+                Validating your file...
+              </p>
+              <p className="text-center text-sm text-gray-500">
+                This may take a moment
+              </p>
+            </div>
+          ) : fileState.uploadFile ? (
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="file" className="text-base font-medium">
+                  Uploaded CAD drawing
+                </Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 rounded-full p-0"
+                  onClick={() => {
+                    removeFile()
                   }}
                 >
-                  <BlurImage
-                    src="/cloud-upload.png"
-                    alt=""
-                    height={20}
-                    width={20}
-                  />
-                  Upload
-                  <input
-                    id="file-upload"
-                    type="file"
-                    className="hidden"
-                    accept=".dwg,.dxf,.pdf,image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                    onChange={handleFileChange}
-                  />
-                </label>
-
-                <p className="text-base font-medium text-gray-700">
-                  Choose image or drag & drop here
-                </p>
-                <p className="text-sm text-gray-500">
-                  DWG, DXF, or PDF. Max 20MB
-                </p>
-
-                {fileState.uploadFile && (
-                  <p className="mt-2 text-sm text-blue-600">
-                    Selected: {fileState.title}
-                  </p>
-                )}
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Remove file</span>
+                </Button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-2">
+              <Label htmlFor="file" className="text-base font-medium">
+                Upload CAD drawing<span className="text-red-500">*</span>
+              </Label>
+              <div
+                className={cn(
+                  'rounded-md border-2 border-dashed p-8 text-center',
+                  isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                )}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <label
+                    htmlFor="file-upload"
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-800 px-6 py-2 text-blue-500 hover:bg-blue-50"
+                    style={{
+                      gap: 'var(--Spacing-Gap-XS, 8px)',
+                      borderRadius: 'var(--Radius-4, 8px)',
+                      border: '1.5px solid var(--Colors-Primary-800, #1C99FF)',
+                      padding: '8px 24px',
+                    }}
+                  >
+                    <BlurImage
+                      src="/cloud-upload.png"
+                      alt=""
+                      height={20}
+                      width={20}
+                    />
+                    Upload
+                    <input
+                      id="file-upload"
+                      type="file"
+                      className="hidden"
+                      accept=".dwg,.dxf,.pdf,image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+
+                  <p className="text-base font-medium text-gray-700">
+                    Choose image or drag & drop here
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    DWG, DXF, or PDF. Max 20MB
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end">
