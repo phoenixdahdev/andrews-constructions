@@ -9,9 +9,11 @@ import * as SwitchPrimitives from '@radix-ui/react-switch'
 import BlurImage from '~/components/miscellaneous/blur-image'
 import { Search, Bell, Moon, Sun } from 'lucide-react'
 import { useAIDrawerStore } from '~/hooks/use-ai-drawer-store'
+import { useSearch } from '~/hooks/use-search'
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme()
+  const { setSearch } = useSearch()
   const { openDrawer } = useAIDrawerStore()
   const handleThemeToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     toggleTheme({ x: e.clientX, y: e.clientY })
@@ -40,6 +42,7 @@ const Header = () => {
               type="text"
               placeholder="Search CAD drawings..."
               className="w-full rounded-md border py-2 pl-10"
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>

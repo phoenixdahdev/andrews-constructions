@@ -22,6 +22,7 @@ export async function create_cad_service(data: Partial<cad_drawing>) {
             name: data.name as string,
             file_path: data.file_path as string,
             user_id: data.user_id as string,
+            file_type: data.file_type as string
         },
     });
 }

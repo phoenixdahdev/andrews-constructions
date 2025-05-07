@@ -9,6 +9,7 @@ import { ServiceResponse } from "~/types/global"
 export async function create_cad(data: {
     name: string
     file_path: string
+    file_type: string
 }): Promise<ServiceResponse<cad_drawing>> {
     try {
         const session = await auth();
@@ -24,6 +25,7 @@ export async function create_cad(data: {
             name: data.name,
             file_path: data.file_path,
             user_id: session.user.id,
+            file_type: data.file_type
         });
         return {
             success: true,

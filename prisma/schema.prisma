@@ -62,7 +62,7 @@ model cad_drawing {
   id           String           @id @default(uuid()) @db.Uuid
   name         String
   file_path    String
-  project_id   String?          @db.Uuid
+  file_type    String
   user_id      String           @db.Uuid
   user         user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
   uploaded_at  DateTime         @default(now()) @db.Timestamptz()
@@ -70,7 +70,6 @@ model cad_drawing {
   materials    material_needs[]
 
   @@index([user_id])
-  @@index([project_id])
   @@map("cad_drawings")
 }
 

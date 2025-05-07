@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useTransition } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { ArrowRight, FileIcon, Trash2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { useState } from 'react'
-import { useUploadDialogStore } from '~/hooks/use-upload-dialog-store'
-import BlurImage from '~/components/miscellaneous/blur-image'
+import { Input } from 'ui/input'
+import { Label } from 'ui/label'
 import { cn } from '~/lib/utils'
+import { Button } from 'ui/button'
+import { create_cad } from '~/actions/cad'
+import React, { useTransition } from 'react'
+import { useCadDrawings } from '~/app/queries'
+import { uploadS3File } from '~/actions/file-upload'
 import { validateCadFile } from '~/actions/verify-cad'
 import { Spinner } from '~/components/miscellaneous/spinner'
-import { toast } from 'sonner'
+import { ArrowRight, FileIcon, Loader2, Trash2, X } from 'lucide-react'
+import BlurImage from '~/components/miscellaneous/blur-image'
+import { useUploadDialogStore } from '~/hooks/use-upload-dialog-store'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from 'ui/dialog'
 
 export function UploadDialog() {
   const {
@@ -26,12 +23,13 @@ export function UploadDialog() {
     closeDialog,
     setTitle,
     setFile,
-    setProgress,
     removeFile,
     reset,
   } = useUploadDialogStore()
   const [isDragging, setIsDragging] = useState(false)
   const [isVerifying, startVerifying] = useTransition()
+  const [isPending, startTransition] = useTransition()
+  const { refetch } = useCadDrawings()
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -90,12 +88,44 @@ export function UploadDialog() {
   }
 
   const handleSubmit = () => {
-    // Handle the file upload logic here
-    console.log('Uploading file:', fileState)
-
-    // Close the dialog and reset the form
-    closeDialog()
-    reset()
+    startTransition(async () => {
+      const formData = new FormData()
+      formData.append('folder_name', 'uploads')
+      formData.append('file_id', `file_${Date.now()}`)
+      formData.append('name', `file_${fileState.title}`)
+      formData.append('file', fileState.uploadFile?.file as File)
+      formData.append('file_type', fileState.uploadFile?.file.type as string)
+      await uploadS3File(formData)
+        .then(async (res) => {
+          const cad = await create_cad({
+            name: fileState.title,
+            file_path: res?.response?.url as string,
+            file_type: fileState.uploadFile?.file.type as string,
+          })
+          if (cad.success) {
+            await refetch()
+            closeDialog()
+            reset()
+          } else {
+            toast.error('An unexpected error occured')
+          }
+          if (res?.status === 'success') {
+            toast.success('File uploaded successfully', {
+              description: 'Your file has been uploaded to S3',
+            })
+          } else {
+            toast.error('File upload failed', {
+              description: res?.message || 'Please try again later',
+            })
+          }
+        })
+        .catch((err) => {
+          console.error('Error uploading file:', err)
+          toast.error('An error occurred during upload', {
+            description: 'Please try again later',
+          })
+        })
+    })
   }
 
   const getFileIcon = (fileName: string) => {
@@ -133,7 +163,7 @@ export function UploadDialog() {
               placeholder="Enter a title for your CAD drawing..."
               value={fileState.title}
               onChange={(e) => setTitle(e.target.value)}
-              disabled={isVerifying}
+              disabled={isVerifying || isPending}
             />
           </div>
 
@@ -173,16 +203,8 @@ export function UploadDialog() {
                       <span className="font-medium text-gray-700">
                         {fileState.uploadFile.file.name}
                       </span>
-                      <span className="text-gray-400">
-                        {fileState.uploadFile.progress}%
-                      </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className="h-full rounded-full bg-blue-500"
-                        style={{ width: `${fileState.uploadFile.progress}%` }}
-                      ></div>
-                    </div>
+
                     <div className="mt-1 text-sm text-gray-500">
                       {Math.round(fileState.uploadFile.file.size / 1024)}KB
                     </div>
@@ -254,10 +276,21 @@ export function UploadDialog() {
           <Button
             type="button"
             className="flex items-center justify-center gap-2 rounded-lg border-2 border-[#8ECCFF] bg-[#1C99FF] px-6 py-3 text-white hover:bg-blue-600 disabled:opacity-50"
-            disabled={!fileState.title || !fileState.uploadFile}
+            disabled={
+              !fileState.title ||
+              !fileState.uploadFile ||
+              isVerifying ||
+              isPending
+            }
             onClick={handleSubmit}
           >
-            Proceed <ArrowRight className="ml-2 h-4 w-4" />
+            {isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                Proceed <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

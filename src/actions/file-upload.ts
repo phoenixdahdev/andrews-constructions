@@ -25,11 +25,15 @@ const acceptedMemeTypes = [
     'image/jpg',
     'image/webp',
     'application/pdf',
-]
+    'application/acad',
+    'application/dxf',
+    'image/vnd.dwg',
+    'image/vnd.dxf'
+];
+
 export async function uploadS3File(formData: FormData) {
     if (!formData) return
     const file = formData.get('file') as File
-
     const file_id = formData.get('file_id') as string
     const file_type = formData.get('file_type') as string
     const file_name = formData.get('name')
