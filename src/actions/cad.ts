@@ -71,7 +71,8 @@ export async function get_cards(): Promise<ServiceResponse<cad_drawing[]>> {
     }
 }
 
-export async function get_card(id: string): Promise<ServiceResponse<cad_drawing>> {
+export async function get_card(): Promise<ServiceResponse<cad_drawing>> {
+    const id = await get_current_cad() as string
     try {
         const session = await auth();
         if (!session?.user?.id) {

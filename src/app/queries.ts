@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { get_cards } from '~/actions/cad'
+import { get_card, get_cards } from '~/actions/cad'
 
 
 export const useCadDrawings = () => {
@@ -7,6 +7,16 @@ export const useCadDrawings = () => {
         queryKey: ['cad_drawings'],
         queryFn: async () => {
             return await get_cards()
+        },
+    })
+}
+
+
+export const useCadDrawingById = () => {
+    return useQuery({
+        queryKey: ['cad_drawing_by_id'],
+        queryFn: async () => {
+            return await get_card()
         },
     })
 }

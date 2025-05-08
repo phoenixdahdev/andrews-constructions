@@ -10,9 +10,11 @@ import { Button } from '~/components/ui/button'
 import BlurImage from '~/components/miscellaneous/blur-image'
 import { useRouter } from 'next/navigation'
 import { set_current_cad } from '~/actions/cad'
+import { useUploadDialogStore } from '~/hooks/use-upload-dialog-store'
 
 const HomePage = () => {
   const { isPending, isLoading, data, isError } = useCadDrawings()
+  const { openDialog } = useUploadDialogStore()
   const { search } = useSearch()
   const router = useRouter()
 
@@ -61,7 +63,19 @@ const HomePage = () => {
     <EmptyState />
   ) : (
     <div className="mx-auto w-full">
-      <h1 className="text-2xl font-bold">History</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">History</h1>
+        <label htmlFor="file-upload">
+          <Button
+            variant="outline"
+            className="flex items-center justify-center gap-2 rounded-md border-2 border-[#1C99FF] px-6 py-4 text-[#1C99FF] hover:bg-blue-50"
+            onClick={() => openDialog()}
+          >
+            <BlurImage src="/cloud-upload.png" alt="" height={20} width={20} />
+            Upload File to Get Started
+          </Button>
+        </label>
+      </div>
       {Object.entries(groupedFiles).map(([date, files]) => (
         <div key={date} className="my-8">
           <h2 className="mb-4 text-lg font-medium">{date}</h2>
