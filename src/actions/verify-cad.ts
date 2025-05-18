@@ -40,7 +40,7 @@ export async function validateCadFile(file: File): Promise<boolean> {
         }
 
         const { text: result } = await generateText({
-            model: google("gemini-2.5-pro-exp-03-25"),
+            model: google("gemini-1.5-pro"),
 
 
             system: SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n'),
@@ -70,6 +70,10 @@ RESPOND WITH:
 Your response MUST be JUST the word "true" or "false" with no additional text or explanation.
 `,
         })
+
+        console.log(prompt)
+
+
 
 
         console.log("AI response:", result)

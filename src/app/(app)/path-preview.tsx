@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
-import { usePathname } from 'next/navigation'
 import { cn } from '~/lib/utils'
+import { usePathname } from 'next/navigation'
 
 const PathView = ({
   children,

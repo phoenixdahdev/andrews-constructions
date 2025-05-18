@@ -59,30 +59,55 @@ model login_activity {
 }
 
 model cad_drawing {
-  id           String           @id @default(uuid()) @db.Uuid
-  name         String
-  file_path    String
-  file_type    String
-  user_id      String           @db.Uuid
-  user         user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  uploaded_at  DateTime         @default(now()) @db.Timestamptz()
-  measurements measurement[]
-  materials    material_needs[]
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  file_path       String
+  file_type       String
+  document_type   String?
+  user_id         String           @db.Uuid
+  user            user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  uploaded_at     DateTime         @default(now()) @db.Timestamptz()
+  measurements    measurement[]
+  materials       material_needs[]
+  document_info   document_info?
+  features        feature[]
+  assemblies      assembly[]
+  classifications classification[]
 
   @@index([user_id])
   @@map("cad_drawings")
 }
 
+model document_info {
+  id         String      @id @default(uuid()) @db.Uuid
+  drawing_id String      @unique @db.Uuid
+  drawing    cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  title      String?
+  reference  String?
+  date       String?
+  revision   String?
+  author     String?
+  project    String?
+  client     String?
+  created_at DateTime    @default(now()) @db.Timestamptz()
+  updated_at DateTime    @updatedAt @db.Timestamptz()
+
+  @@map("document_info")
+}
+
 model measurement {
-  id               String      @id @default(uuid()) @db.Uuid
-  drawing_id       String      @db.Uuid
-  drawing          cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
-  measurement_type String
-  value            Float
-  unit             String
+  id               String           @id @default(uuid()) @db.Uuid
+  drawing_id       String           @db.Uuid
+  drawing          cad_drawing      @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  measurement_type measurement_type
+  category         String?
+  name             String
+  size             String
+  value            Float?
+  unit             String?
   x_coordinate     Float?
   y_coordinate     Float?
-  created_at       DateTime    @default(now()) @db.Timestamptz()
+  created_at       DateTime         @default(now()) @db.Timestamptz()
 
   @@index([drawing_id])
   @@map("measurements")
@@ -104,12 +129,14 @@ model material_needs {
 }
 
 model material {
-  id              String           @id @default(uuid()) @db.Uuid
+  id              String            @id @default(uuid()) @db.Uuid
   name            String
   description     String?
+  specification   String?
+  category        material_category
   unit_price      Float
-  currency        String           @default("USD")
-  in_stock        Boolean          @default(true)
+  currency        String            @default("USD")
+  in_stock        Boolean           @default(true)
   material_needs  material_needs[]
   material_orders material_order[]
 
@@ -131,6 +158,46 @@ model material_order {
   @@index([user_id])
   @@index([material_id])
   @@map("material_orders")
+}
+
+model classification {
+  id            String              @id @default(uuid()) @db.Uuid
+  drawing_id    String              @db.Uuid
+  drawing       cad_drawing         @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  category      classification_type
+  name          String
+  specification String
+  created_at    DateTime            @default(now()) @db.Timestamptz()
+  updated_at    DateTime            @updatedAt @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@map("classifications")
+}
+
+model assembly {
+  id          String      @id @default(uuid()) @db.Uuid
+  drawing_id  String      @db.Uuid
+  drawing     cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  created_at  DateTime    @default(now()) @db.Timestamptz()
+  updated_at  DateTime    @updatedAt @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@map("assemblies")
+}
+
+model feature {
+  id          String      @id @default(uuid()) @db.Uuid
+  drawing_id  String      @db.Uuid
+  drawing     cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  created_at  DateTime    @default(now()) @db.Timestamptz()
+  updated_at  DateTime    @updatedAt @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@map("features")
 }
 
 model testimonial {
@@ -191,4 +258,32 @@ enum notification_type {
   SYSTEM_NOTIFICATION
   MATERIAL_CHANGE
   SYSTEM_UPDATE
+}
+
+enum measurement_type {
+  STRUCTURAL_ELEMENT
+  ROOM
+  COMPONENT
+  SPACING
+  THICKNESS
+  TOTAL_THICKNESS
+  OTHER
+}
+
+enum material_category {
+  STRUCTURAL
+  INSULATION
+  FIRE_PROTECTION
+  MEMBRANE
+  FASTENER
+  SHEATHING
+  SURFACE_MATERIAL
+  OTHER
+}
+
+enum classification_type {
+  FIRE_RATING
+  ENVIRONMENTAL
+  STANDARDS_COMPLIANCE
+  OTHER
 }

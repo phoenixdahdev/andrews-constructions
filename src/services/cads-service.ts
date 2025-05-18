@@ -26,3 +26,26 @@ export async function create_cad_service(data: Partial<cad_drawing>) {
         },
     });
 }
+
+export async function get_full_cad_details(id: string) {
+    return db.cad_drawing.findUnique({
+        where: { id },
+        include: {
+            document_info: true,
+            measurements: {
+                orderBy: {
+                    category: 'asc',
+                },
+            },
+            materials: {
+                include: {
+                    material: true,
+                },
+            },
+            features: true,
+            assemblies: true,
+            classifications: true,
+        },
+    })
+}
+

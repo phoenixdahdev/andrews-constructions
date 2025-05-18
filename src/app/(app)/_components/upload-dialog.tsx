@@ -8,6 +8,7 @@ import { create_cad } from '~/actions/cad'
 import React, { useTransition } from 'react'
 import { useCadDrawings } from '~/app/queries'
 import { uploadS3File } from '~/actions/file-upload'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { validateCadFile } from '~/actions/verify-cad'
 import { Spinner } from '~/components/miscellaneous/spinner'
 import { ArrowRight, FileIcon, Loader2, Trash2, X } from 'lucide-react'
@@ -49,14 +50,15 @@ export function UploadDialog() {
     }
     startVerifying(async () => {
       try {
-        const isValid = await validateCadFile(file)
-        if (isValid) {
-          setFile(file)
-        } else {
-          toast.error('File validation failed', {
-            description: 'Please upload a valid CAD file (DWG, DXF, or PDF)',
-          })
-        }
+        setFile(file)
+        // const isValid = await validateCadFile(file)
+        // if (isValid) {
+        //   setFile(file)
+        // } else {
+        //   toast.error('File validation failed', {
+        //     description: 'Please upload a valid CAD file (DWG, DXF, or PDF)',
+        //   })
+        // }
       } catch (err) {
         console.error('Error validating file:', err)
         toast.error('An error occurred during validation', {
