@@ -1,7 +1,8 @@
 'use client'
-import React from 'react'
 import { cn } from '~/lib/utils'
+import React, { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { delete_current_cad } from '~/actions/cad'
 
 const PathView = ({
   children,
@@ -9,6 +10,15 @@ const PathView = ({
   children: React.ReactNode
 }>) => {
   const path = usePathname()
+  useEffect(() => {
+    const maybeDeleteCad = async () => {
+      if (!path.includes('cad')) {
+        await delete_current_cad()
+      }
+    }
+    maybeDeleteCad()
+  }, [path])
+
   return (
     <main
       className={cn(

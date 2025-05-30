@@ -1,6 +1,6 @@
-import { generateText } from "ai"
-import { getEnvVariables } from "./getenv"
-import { createGoogleGenerativeAI, } from "@ai-sdk/google"
+import { generateText } from 'ai'
+import { getEnvVariables } from './getenv'
+import { createOpenAI } from '@ai-sdk/openai'
 
 /**
  * Validates if a file is a CAD drawing using Google's Gemini AI
@@ -8,43 +8,42 @@ import { createGoogleGenerativeAI, } from "@ai-sdk/google"
  * @returns A boolean indicating if the file is a valid CAD drawing
  */
 export async function validateCadFile(file: File): Promise<boolean> {
-    const base64 = await fileToBase64(file)
+  const base64 = await fileToBase64(file)
 
-    const { SYSTEM_FILE_VALIDATOR_PROMPT, GOOGLE_GENERATIVE_AI_API_KEY } = await getEnvVariables("SYSTEM_FILE_VALIDATOR_PROMPT", "GOOGLE_GENERATIVE_AI_API_KEY")
+  const { SYSTEM_FILE_VALIDATOR_PROMPT, OPENAI_API_KEY } =
+    await getEnvVariables('SYSTEM_FILE_VALIDATOR_PROMPT', 'OPENAI_API_KEY')
 
+  const openai = createOpenAI({
+    apiKey: OPENAI_API_KEY,
+  })
 
-    const google = createGoogleGenerativeAI({
-        apiKey: GOOGLE_GENERATIVE_AI_API_KEY,
-    })
+  try {
+    const fileName = file.name
+    const fileExtension = fileName.split('.').pop()?.toLowerCase() || ''
+    const fileSize = file.size
+    const fileType = file.type
+    if (fileExtension === 'dwg' || fileExtension === 'dxf') {
+      return true
+    }
 
-    try {
-        const fileName = file.name
-        const fileExtension = fileName.split(".").pop()?.toLowerCase() || ""
-        const fileSize = file.size
-        const fileType = file.type
-        if (fileExtension === "dwg" || fileExtension === "dxf") {
-            return true
-        }
+    let fileContent = null
+    if (fileType.startsWith('image/')) {
+      fileContent = await fileToBase64(file)
+    }
 
-        let fileContent = null
-        if (fileType.startsWith("image/")) {
-            fileContent = await fileToBase64(file)
-        }
+    const fileInfo = {
+      name: fileName,
+      extension: fileExtension,
+      size: fileSize,
+      type: fileType,
+      content: fileType.startsWith('image/') ? fileContent : '',
+    }
 
-        const fileInfo = {
-            name: fileName,
-            extension: fileExtension,
-            size: fileSize,
-            type: fileType,
-            content: fileType.startsWith("image/") ? fileContent : "",
-        }
+    const { text: result } = await generateText({
+      model: openai('gpt-4o-mini'),
 
-        const { text: result } = await generateText({
-            model: google("gemini-1.5-pro"),
-
-
-            system: SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n'),
-            prompt: `
+      system: SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n'),
+      prompt: `
 Analyze the following file information and determine if it's a valid CAD drawing.
 
 File Information:
@@ -52,7 +51,7 @@ File Information:
 - Extension: ${fileInfo.extension}
 - Size: ${fileInfo.size} bytes
 - MIME Type: ${fileInfo.type}
-- Content: ${fileType.startsWith("image/") ? base64 : fileInfo.content}
+- Content: ${fileType.startsWith('image/') ? base64 : fileInfo.content}
 
 INSTRUCTIONS:
 1. Carefully examine the file information and content
@@ -69,37 +68,26 @@ RESPOND WITH:
 
 Your response MUST be JUST the word "true" or "false" with no additional text or explanation.
 `,
-        })
-
-        console.log(prompt)
-
-
-
-
-        console.log("AI response:", result)
-        const isValid = result.trim().toLowerCase() === "true"
-
-
-        console.log(`CAD validation for ${fileName}: ${isValid}`)
-
-        return isValid
-    } catch (error) {
-        console.error("Error in validateCadFile:", error)
-        return false
-    }
+    })
+    const isValid = result.trim().toLowerCase() === 'true'
+    return isValid
+  } catch (error) {
+    console.error('Error in validateCadFile:', error)
+    return false
+  }
 }
 
 /**
  * Converts a file to a base64 string
  */
 function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = () => {
-            const result = reader.result as string
-            resolve(result)
-        }
-        reader.onerror = (error) => reject(error)
-    })
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      const result = reader.result as string
+      resolve(result)
+    }
+    reader.onerror = (error) => reject(error)
+  })
 }

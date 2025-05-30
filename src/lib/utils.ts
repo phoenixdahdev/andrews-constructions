@@ -9,8 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 export const inDevEnvironment =
   !!process && process.env.NODE_ENV === 'development'
 
-
-export const validatorPrompt = !!process && process.env.SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n');
+export const validatorPrompt =
+  !!process && process.env.SYSTEM_FILE_VALIDATOR_PROMPT?.replace(/\\n/g, '\n')
 
 export async function hash_password(password: string): Promise<string> {
   return hash(password, 12)
@@ -22,7 +22,6 @@ export async function compare_password(
 ): Promise<boolean> {
   return compare(password, hashed_password)
 }
-
 
 export const formatFileSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
@@ -41,6 +40,3 @@ export const generateId = (length: number = 14): string => {
 
   return result
 }
-
-
-

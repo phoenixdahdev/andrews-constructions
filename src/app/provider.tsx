@@ -29,7 +29,6 @@ export function Providers({
         buttonPosition="top-left"
       />
       {session && <WelcomeModal />}
-
       <UploadDialog />
       <AIOptimizer />
     </QueryClientProvider>

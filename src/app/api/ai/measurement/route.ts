@@ -1,28 +1,30 @@
-import { google } from "@ai-sdk/google"
-import { type NextRequest, NextResponse } from "next/server"
-import { generateText } from "ai"
-
+import { generateText } from 'ai'
+import { google } from '@ai-sdk/google'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-    try {
-        const { imageUrl } = await req.json()
+  try {
+    const { imageUrl } = await req.json()
 
-        if (!imageUrl) {
-            return NextResponse.json({ error: "No image URL provided" }, { status: 400 })
-        }
-        const response = await fetch(imageUrl)
-        if (!response.ok) {
-            return NextResponse.json(
-                {
-                    error: `Failed to fetch image from URL: ${response.status} ${response.statusText}`,
-                },
-                { status: 400 },
-            )
-        }
+    if (!imageUrl) {
+      return NextResponse.json(
+        { error: 'No image URL provided' },
+        { status: 400 }
+      )
+    }
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error: `Failed to fetch image from URL: ${response.status} ${response.statusText}`,
+        },
+        { status: 400 }
+      )
+    }
 
-        const imageBuffer = await response.arrayBuffer()
+    const imageBuffer = await response.arrayBuffer()
 
-        const prompt = `
+    const prompt = `
       Analyze this floor plan image in detail. 
       
       Provide a structured JSON response with the following information:
@@ -48,47 +50,55 @@ export async function POST(req: NextRequest) {
       }
     `
 
-        const result = await generateText({
-            model: google("gemini-1.5-pro"),
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: prompt,
-                        },
-                        {
-                            type: "image",
-                            image: new Uint8Array(imageBuffer),
-                        },
-                    ],
-                },
-            ],
-        })
+    const result = await generateText({
+      model: google('gemini-1.5-pro'),
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: prompt,
+            },
+            {
+              type: 'image',
+              image: new Uint8Array(imageBuffer),
+            },
+          ],
+        },
+      ],
+    })
 
-        console.log("Model response:", result.text)
+    console.log('Model response:', result.text)
 
-        let parsedResponse
-        try {
-            const textResponse = result.text
-            const jsonMatch = textResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || textResponse.match(/\{[\s\S]*\}/)
+    let parsedResponse
+    try {
+      const textResponse = result.text
+      const jsonMatch =
+        textResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
+        textResponse.match(/\{[\s\S]*\}/)
 
-            const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : textResponse
-            parsedResponse = JSON.parse(jsonString)
-        } catch {
-            return NextResponse.json({
-                success: false,
-                error: "Failed to parse model response as JSON",
-                rawResponse: result.text,
-            })
-        }
-        return NextResponse.json({
-            success: true,
-            analysis: parsedResponse,
-        })
-    } catch (error) {
-        console.error("Error analyzing floor plan:", error)
-        return NextResponse.json({ error: "Failed to analyze floor plan", details: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
+      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : textResponse
+      parsedResponse = JSON.parse(jsonString)
+    } catch {
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to parse model response as JSON',
+        rawResponse: result.text,
+      })
     }
+    return NextResponse.json({
+      success: true,
+      analysis: parsedResponse,
+    })
+  } catch (error) {
+    console.error('Error analyzing floor plan:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to analyze floor plan',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
+  }
 }

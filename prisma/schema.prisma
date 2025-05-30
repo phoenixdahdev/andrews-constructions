@@ -29,6 +29,7 @@ model user {
   profile_image    String?
   role             user_role        @default(USER)
   notifications    notification[]   @relation("user_notifications")
+  conversations    conversation[]   @relation("user_conversations")
 }
 
 model user_settings {
@@ -228,6 +229,40 @@ model notification {
 
   @@index([user_id])
   @@map("notifications")
+}
+
+model conversation {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  user_id     String    @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamptz()
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamptz()
+  user        user      @relation("user_conversations", fields: [user_id], references: [id], onDelete: Cascade)
+  messages    message[] @relation("conversation_messages")
+
+  @@index([user_id])
+  @@map("conversations")
+}
+
+model message {
+  id              String       @id @default(uuid()) @db.Uuid
+  conversationId  String       @db.Uuid
+  conversation    conversation @relation("conversation_messages", fields: [conversationId], references: [id], onDelete: Cascade)
+  role            MessageRole
+  content         String
+  image_url       String?
+  image_file_name String?
+  metadata        Json?
+  created_at      DateTime     @default(now()) @db.Timestamptz()
+
+  @@map("messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }
 
 enum user_role {

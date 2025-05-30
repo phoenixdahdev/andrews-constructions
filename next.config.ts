@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  serverExternalPackages: ["@react-pdf/renderer", "pdfjs-dist"],
+  serverExternalPackages: ['@react-pdf/renderer', 'pdfjs-dist'],
   experimental: {
     serverActions: {
       bodySizeLimit: '15mb',

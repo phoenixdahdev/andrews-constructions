@@ -1,29 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai"
-import { type NextRequest, NextResponse } from "next/server";
-import { generateText } from "ai";
+import { openai } from '@ai-sdk/openai'
+import { type NextRequest, NextResponse } from 'next/server'
+import { generateText } from 'ai'
 
 export async function POST(req: NextRequest) {
   try {
-    const { file_url, file_type } = await req.json();
+    const { file_url, file_type } = await req.json()
 
     if (!file_url) {
-      return NextResponse.json({ error: "No file URL provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No file URL provided' },
+        { status: 400 }
+      )
     }
 
-
-    const response = await fetch(file_url);
+    const response = await fetch(file_url)
     if (!response.ok) {
       return NextResponse.json(
         {
           error: `Failed to fetch file from URL: ${response.status} ${response.statusText}`,
         },
         { status: 400 }
-      );
+      )
     }
 
-    const fileBuffer = await response.arrayBuffer();
+    const fileBuffer = await response.arrayBuffer()
 
     const prompt = `Extract complete and comprehensive information from this construction document.
 
@@ -123,54 +123,54 @@ For construction documents like roof plans or wall sections, pay special attenti
 4. Assembly descriptions that explain how components fit together
 5. Special features like access hatches, joints, or penetrations`
     const result = await generateText({
-      model: openai("gpt-4-turbo",),
+      model: openai('gpt-4-turbo'),
       messages: [
-
         {
-
-          role: "user",
+          role: 'user',
           content: [
             {
-              type: "text",
+              type: 'text',
               text: prompt,
             },
             {
-              type: "file",
+              type: 'file',
               mimeType: file_type,
               data: new Uint8Array(fileBuffer),
             },
           ],
         },
       ],
-    });
+    })
 
-    let parsedResponse;
+    let parsedResponse
     try {
-      const textResponse = result.text;
-      const jsonMatch = textResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || textResponse.match(/\{[\s\S]*\}/);
+      const textResponse = result.text
+      const jsonMatch =
+        textResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
+        textResponse.match(/\{[\s\S]*\}/)
 
-      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : textResponse;
-      parsedResponse = JSON.parse(jsonString);
+      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : textResponse
+      parsedResponse = JSON.parse(jsonString)
     } catch (error) {
-      console.error("Failed to parse model response as JSON:", error);
+      console.error('Failed to parse model response as JSON:', error)
       return NextResponse.json({
         success: false,
-        error: "Failed to parse model response as JSON",
+        error: 'Failed to parse model response as JSON',
         rawResponse: result.text,
-      });
+      })
     }
     return NextResponse.json({
       success: true,
       analysis: parsedResponse,
-    });
+    })
   } catch (error) {
-    console.error("Error analyzing floor plan:", error);
+    console.error('Error analyzing floor plan:', error)
     return NextResponse.json(
       {
-        error: "Failed to analyze floor plan",
-        details: error instanceof Error ? error.message : "Unknown error"
+        error: 'Failed to analyze floor plan',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
-    );
+    )
   }
 }

@@ -6,13 +6,12 @@ export const apiAuthPrefix = '/api'
  */
 export const DEFAULT_LOGIN_REDIRECT = '/'
 
-
 export const authRoutes = [
-    '/forgot-password',
-    '/login',
-    '/reset-password',
-    '/signup',
-    '/verify-email',
-    '/verify-otp',
-    '/verified',
+  '/forgot-password',
+  '/login',
+  '/reset-password',
+  '/signup',
+  '/verify-email',
+  '/verify-otp',
+  '/verified',
 ]
