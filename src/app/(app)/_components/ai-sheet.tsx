@@ -5,8 +5,8 @@ import { Input } from 'ui/input'
 import { Button } from 'ui/button'
 import { Markdown } from './markdown'
 import { useChat } from '@ai-sdk/react'
-import { useState, useRef } from 'react'
 import { cn, sanitizeText } from '~/lib/utils'
+import { useState, useRef, useEffect } from 'react'
 import { uploadS3File } from '~/actions/file-upload'
 import { Paperclip, ArrowUp, X, Loader2 } from 'lucide-react'
 import BlurImage from '~/components/miscellaneous/blur-image'
@@ -30,6 +30,7 @@ export function AIOptimizer() {
   const [isUploading, setIsUploading] = useState(false)
   const { isOpen, openDrawer, closeDrawer } = useAIDrawerStore()
   const [selectedImages, setSelectedImages] = useState<ImagePreview[]>([])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const {
     input,
@@ -53,6 +54,14 @@ export function AIOptimizer() {
       }
     },
   })
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -280,6 +289,7 @@ export function AIOptimizer() {
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </div>

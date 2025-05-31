@@ -6,7 +6,7 @@ import { get_current_chat, set_current_chat } from '~/actions/chat'
 import { ConversationService } from '~/services/conversation.service'
 import { Attachment, Message, streamText, smoothStream, UIMessage, } from 'ai'
 
-export const maxDuration = 60
+// export const maxDuration = 60
 // export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
