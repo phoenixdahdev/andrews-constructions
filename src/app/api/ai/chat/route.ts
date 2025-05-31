@@ -7,10 +7,11 @@ import { ConversationService } from '~/services/conversation.service'
 import { Attachment, Message, streamText, smoothStream, UIMessage, } from 'ai'
 
 export const maxDuration = 60
+export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, }: { messages: UIMessage[], imageUrls?: string[], } =
+    const { messages, }: { messages: UIMessage[] } =
       await req.json()
     let conversationId
     const session = await auth()
