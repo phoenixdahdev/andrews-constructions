@@ -1,7 +1,7 @@
 import React from 'react'
+import { get_card } from '~/actions/cad'
 import CadPreview from '../../_components/cad-preview'
 import { getQueryClient } from '~/lib/get-query-client'
-import { get_card } from '~/actions/cad'
 import Measurement from '../../_components/measurement'
 
 const CardPage = async () => {

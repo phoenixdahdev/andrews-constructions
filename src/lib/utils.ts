@@ -40,3 +40,28 @@ export const generateId = (length: number = 14): string => {
 
   return result
 }
+
+
+export function sanitizeText(text: string) {
+  return text.replace('<has_function_call>', '');
+}
+
+
+export const base64ToBlob = (base64: string, contentType: string): Blob => {
+  const byteCharacters = atob(base64)
+  const byteArrays = []
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512)
+
+    const byteNumbers = new Array(slice.length)
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
+  }
+
+  return new Blob(byteArrays, { type: contentType })
+}

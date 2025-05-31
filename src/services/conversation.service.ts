@@ -11,8 +11,7 @@ export type ConversationWithMessages = {
     id: string
     role: MessageRole
     content: string
-    image_url: string | null
-    image_file_name: string | null
+    image_urls: string[] | null
     created_at: Date
   }[]
 }
@@ -71,16 +70,14 @@ export class ConversationService {
     conversationId: string,
     role: MessageRole,
     content: string,
-    imageUrl?: string | null,
-    imageFilename?: string | null
+    imageUrls?: string[] | null,
   ) {
     const message = await prisma.message.create({
       data: {
         conversationId,
         role,
         content,
-        image_url: imageUrl,
-        image_file_name: imageFilename,
+        image_urls: imageUrls ?? undefined,
       },
     })
 

@@ -77,8 +77,6 @@ export async function uploadS3File(formData: FormData) {
       Key,
     })
     const getResponse = await s3Client.send(getCommand)
-    console.log('GET RESPONSE: ', getResponse)
-
     if (getResponse.$metadata.httpStatusCode == 200) {
       const data_info = {
         name: getResponse.Metadata?.name || '',

@@ -7,10 +7,20 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "andrew-construction.s3.us-east-1.amazonaws.com",
+        port: "",
+        pathname: "/uploads/**",
+      },
+    ],
+  },
   serverExternalPackages: ['@react-pdf/renderer', 'pdfjs-dist'],
   experimental: {
     serverActions: {
-      bodySizeLimit: '15mb',
+      bodySizeLimit: '100mb',
     },
   },
 }

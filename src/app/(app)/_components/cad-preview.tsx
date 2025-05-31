@@ -1,8 +1,8 @@
 'use client'
 import React from 'react'
+import { FileViewer } from './file-viewer'
 import { useCadDrawingById } from '~/app/queries'
 import { Skeleton } from '~/components/ui/skeleton'
-import { FileViewer } from './file-viewer'
 
 const CadPreview = () => {
   const { data, isPending } = useCadDrawingById()

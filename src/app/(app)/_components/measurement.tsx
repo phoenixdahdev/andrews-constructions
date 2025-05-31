@@ -1,6 +1,4 @@
 'use client'
-import { useMemo, useState } from 'react'
-import { useCadDrawingDetails } from '~/app/queries'
 import {
   Search,
   Plus,
@@ -13,7 +11,19 @@ import {
   Tag,
   Box,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useCadDrawingDetails } from '~/app/queries'
+import { cn } from '~/lib/utils'
 import { measurement } from '@prisma/client'
+
+const tabs = [
+  { key: 'info', label: 'Document Info', icon: Info },
+  { key: 'materials', label: 'Materials', icon: Box },
+  { key: 'measurements', label: 'Measurements', icon: Layers },
+  { key: 'classifications', label: 'Classifications', icon: Tag },
+  { key: 'features', label: 'Features', icon: Pencil },
+  { key: 'assemblies', label: 'Assemblies', icon: Layers },
+]
 
 const Measurement = () => {
   const { data, isLoading, error } = useCadDrawingDetails()
@@ -151,92 +161,26 @@ const Measurement = () => {
           </div>
         </div>
 
-        {/* Interactive tabs - scrollable for many tabs */}
-        <div className="flex overflow-x-auto border-b">
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'info'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('info')}
-          >
-            <div className="flex items-center">
-              <Info className="mr-1 h-4 w-4" />
-              Document Info
-            </div>
-          </button>
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'materials'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('materials')}
-          >
-            <div className="flex items-center">
-              <Box className="mr-1 h-4 w-4" />
-              Materials
-            </div>
-          </button>
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'measurements'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('measurements')}
-          >
-            <div className="flex items-center">
-              <Layers className="mr-1 h-4 w-4" />
-              Measurements
-            </div>
-          </button>
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'classifications'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('classifications')}
-          >
-            <div className="flex items-center">
-              <Tag className="mr-1 h-4 w-4" />
-              Classifications
-            </div>
-          </button>
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'features'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('features')}
-          >
-            <div className="flex items-center">
-              <Pencil className="mr-1 h-4 w-4" />
-              Features
-            </div>
-          </button>
-          <button
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === 'assemblies'
-                ? 'border-b-2 border-blue-500 text-blue-500'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => setActiveTab('assemblies')}
-          >
-            <div className="flex items-center">
-              <Layers className="mr-1 h-4 w-4" />
-              Assemblies
-            </div>
-          </button>
+        <div className="hide-scrollbar flex overflow-x-auto border-b">
+          {tabs.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              className={cn(
+                'flex cursor-pointer items-center px-4 py-2 font-medium whitespace-nowrap',
+                activeTab === key
+                  ? 'border-b-2 border-blue-500 text-blue-500'
+                  : 'text-gray-500 hover:text-gray-700'
+              )}
+              onClick={() => setActiveTab(key)}
+            >
+              <Icon className="mr-1 h-4 w-4" />
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto">
-        {/* Document Info Tab */}
         {activeTab === 'info' && data?.data?.document_info && (
           <div className="p-4">
             <div className="mb-4 rounded-md bg-gray-100 px-4 py-3">
@@ -398,14 +342,15 @@ const Measurement = () => {
                     <div>Size</div>
                   </div>
 
-                  {/* Table rows */}
                   {measurements.length > 0 ? (
                     measurements.map((measurement) => (
                       <div
                         key={measurement.id}
                         className="grid grid-cols-2 border-t px-4 py-3"
                       >
-                        <div className="text-gray-800">{measurement.name}</div>
+                        <div className="whitespace-break-spaces text-gray-800">
+                          {measurement.name}
+                        </div>
                         <div className="text-gray-800">
                           {formatSize(measurement)}
                         </div>

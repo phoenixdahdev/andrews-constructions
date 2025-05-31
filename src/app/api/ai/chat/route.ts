@@ -1,23 +1,32 @@
-import { streamText } from 'ai'
+import { auth } from 'auth'
 import { openai } from '@ai-sdk/openai'
-import { NextResponse, type NextRequest } from 'next/server'
-import { message, MessageRole } from '@prisma/client'
+import { MessageRole, } from '@prisma/client';
+import { NextResponse, type NextRequest, } from 'next/server'
+import { get_current_chat, set_current_chat } from '~/actions/chat'
 import { ConversationService } from '~/services/conversation.service'
+import { Attachment, Message, streamText, smoothStream, UIMessage, } from 'ai'
 
 export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, conversationId, imageUrl, imageFilename } =
+    const { messages, }: { messages: UIMessage[], imageUrls?: string[], } =
       await req.json()
-
-    console.dir(messages, { depth: null, colors: true })
-
-
-    return NextResponse.json({
-      data: "messages received",
-    })
-
+    let conversationId
+    const session = await auth()
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+    conversationId = await get_current_chat()
+    if (!conversationId) {
+      const conversation = await ConversationService.createConversation(
+        session.user.id,
+        'AI Optimizer',
+        'This conversation is for optimizing CAD drawings and construction plans.'
+      )
+      conversationId = conversation.id
+      await set_current_chat(conversationId)
+    }
 
     if (!messages || messages.length === 0) {
       return new Response('No messages provided', { status: 400 })
@@ -26,50 +35,29 @@ export async function POST(req: NextRequest) {
       const lastMessage = messages[messages.length - 1]
       if (lastMessage.role === 'user') {
         await ConversationService.addMessage(
-          conversationId,
+          conversationId as string,
           MessageRole.USER,
           lastMessage.content,
-          imageUrl,
-          imageFilename
+          lastMessage.experimental_attachments?.map(
+            (attachment: Attachment) => attachment.url
+          )
         )
       }
     }
-    const formattedMessages = messages.map((message: message) => {
-      if (message.role === MessageRole.USER && message.image_url) {
-        return {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: message.content || 'Analyze this CAD drawing',
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: message.image_url,
-              },
-            },
-          ],
-        }
-      }
-      return {
-        role: message.role,
-        content: message.content,
-      }
-    })
-    if (
-      !formattedMessages.some((m: message) => m.role === MessageRole.SYSTEM)
-    ) {
-      formattedMessages.unshift({
-        role: 'system',
-        content:
-          'You are a helpful CAD and construction expert. Analyze CAD drawings, suggest optimizations, and answer questions about construction plans. Be specific and technical when appropriate.',
-      })
-    }
+
     const result = streamText({
       model: openai('gpt-4o'),
-      messages: formattedMessages,
-      maxTokens: 2000,
+      // @ts-expect-error next line
+      messages: messages.map((message: Message) => ({
+        role: message.role,
+        content: [
+          { type: "text", text: message.content },
+          ...(message.experimental_attachments || []).map((attachment: Attachment) => ({
+            type: "image",
+            image: attachment.url,
+          })),
+        ],
+      })),
       onFinish: async (result) => {
         if (conversationId) {
           await ConversationService.addMessage(
@@ -79,6 +67,10 @@ export async function POST(req: NextRequest) {
           )
         }
       },
+      experimental_transform: smoothStream({
+        delayInMs: 20,
+        chunking: 'line',
+      }),
     })
     return result.toDataStreamResponse()
   } catch (error) {

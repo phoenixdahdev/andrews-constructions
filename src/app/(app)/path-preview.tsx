@@ -3,6 +3,8 @@ import { cn } from '~/lib/utils'
 import React, { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { delete_current_cad } from '~/actions/cad'
+import { useAIDrawerStore } from '~/hooks/use-ai-drawer-store'
+import { delete_current_chat } from '~/actions/chat'
 
 const PathView = ({
   children,
@@ -10,6 +12,7 @@ const PathView = ({
   children: React.ReactNode
 }>) => {
   const path = usePathname()
+  const { isOpen } = useAIDrawerStore()
   useEffect(() => {
     const maybeDeleteCad = async () => {
       if (!path.includes('cad')) {
@@ -18,6 +21,15 @@ const PathView = ({
     }
     maybeDeleteCad()
   }, [path])
+
+  useEffect(() => {
+    const delete_current_chat_from_ai_drawer = async () => {
+      if (!isOpen) {
+        await delete_current_chat()
+      }
+    }
+    delete_current_chat_from_ai_drawer()
+  }, [isOpen])
 
   return (
     <main
