@@ -3,6 +3,7 @@ import { openai } from '@ai-sdk/openai'
 import { type NextRequest, NextResponse } from 'next/server'
 
 // export const runtime = "edge";
+export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
   try {
