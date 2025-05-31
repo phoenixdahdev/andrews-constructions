@@ -9,6 +9,9 @@ export async function POST(req: NextRequest) {
   try {
     const { file_url, file_type } = await req.json()
 
+    console.log('Received file_url:', file_url)
+    console.log('Received file_type:', file_type)
+
     if (!file_url) {
       return NextResponse.json(
         { error: 'No file URL provided' },
