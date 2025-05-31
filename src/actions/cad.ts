@@ -176,7 +176,7 @@ export async function get_cad_details() {
       cad.materials.length === 0
     ) {
       const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
+        ? `${process.env.VERCEL_URL}`
         : 'http://localhost:3000'
       const res = await fetch(`${baseUrl}/api/ai/analysis`, {
         method: 'POST',
