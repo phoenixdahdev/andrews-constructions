@@ -1,20 +1,24 @@
-import React from 'react'
-import { get_card } from '~/actions/cad'
+import React, { Suspense } from 'react'
 import CadPreview from '../../_components/cad-preview'
 import { getQueryClient } from '~/lib/get-query-client'
 import Measurement from '../../_components/measurement'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
-const CardPage = async () => {
+type Params = Promise<{ id: string }>
+
+const CardPage = async ({ params }: { params: Params }) => {
+  const { id } = await params
   const queryClient = getQueryClient()
-  await queryClient.prefetchQuery({
-    queryKey: ['cad_drawing_by_id'],
-    queryFn: get_card,
-  })
+
   return (
-    <div className="flex h-full w-full items-center justify-between gap-4">
-      <CadPreview />
-      <Measurement />
-    </div>
+    <Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <div className="flex h-full w-full items-center justify-between gap-4">
+          <CadPreview />
+          <Measurement id={id} />
+        </div>
+      </HydrationBoundary>
+    </Suspense>
   )
 }
 

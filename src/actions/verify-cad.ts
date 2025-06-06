@@ -69,6 +69,7 @@ RESPOND WITH:
 Your response MUST be JUST the word "true" or "false" with no additional text or explanation.
 `,
     })
+    console.log('Validation result:', result)
     const isValid = result.trim().toLowerCase() === 'true'
     return isValid
   } catch (error) {

@@ -62,8 +62,8 @@ const HomePage = () => {
   ) : !data?.success || !filteredFiles?.length || isError ? (
     <EmptyState />
   ) : (
-    <div className="mx-auto w-full">
-      <div className="flex items-center justify-between">
+    <div className="hide-scrollbar mx-auto w-full">
+      <div className="hide-scrollbar flex items-center justify-between">
         <h1 className="text-2xl font-bold">History</h1>
         <label htmlFor="file-upload">
           <Button
@@ -79,7 +79,6 @@ const HomePage = () => {
       {Object.entries(groupedFiles).map(([date, files]) => (
         <div key={date} className="my-8">
           <h2 className="mb-4 text-lg font-medium">{date}</h2>
-
           {files.map((file) => (
             <Card
               key={file.id}

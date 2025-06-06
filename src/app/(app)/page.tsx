@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import { get_cards } from '~/actions/cad'
 import HomePage from './_components/home-page'
 import { getQueryClient } from '~/lib/get-query-client'
-import { get_cards } from '~/actions/cad'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
 export const dynamic = 'force-dynamic'
 const Home = async () => {
@@ -11,7 +12,13 @@ const Home = async () => {
     queryFn: get_cards,
   })
 
-  return <HomePage />
+  return (
+    <Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <HomePage />
+      </HydrationBoundary>
+    </Suspense>
+  )
 }
 
 export default Home

@@ -1,18 +1,17 @@
 import { auth } from 'auth'
 import { openai } from '@ai-sdk/openai'
-import { MessageRole, } from '@prisma/client';
-import { NextResponse, type NextRequest, } from 'next/server'
+import { MessageRole } from '@prisma/client'
+import { NextResponse, type NextRequest } from 'next/server'
 import { get_current_chat, set_current_chat } from '~/actions/chat'
 import { ConversationService } from '~/services/conversation.service'
-import { Attachment, Message, streamText, smoothStream, UIMessage, } from 'ai'
+import { Attachment, Message, streamText, smoothStream, UIMessage } from 'ai'
 
 // export const maxDuration = 60
 // export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, }: { messages: UIMessage[] } =
-      await req.json()
+    const { messages }: { messages: UIMessage[] } = await req.json()
     let conversationId
     const session = await auth()
     if (!session) {
@@ -52,11 +51,13 @@ export async function POST(req: NextRequest) {
       messages: messages.map((message: Message) => ({
         role: message.role,
         content: [
-          { type: "text", text: message.content },
-          ...(message.experimental_attachments || []).map((attachment: Attachment) => ({
-            type: "image",
-            image: attachment.url,
-          })),
+          { type: 'text', text: message.content },
+          ...(message.experimental_attachments || []).map(
+            (attachment: Attachment) => ({
+              type: 'image',
+              image: attachment.url,
+            })
+          ),
         ],
       })),
       onFinish: async (result) => {

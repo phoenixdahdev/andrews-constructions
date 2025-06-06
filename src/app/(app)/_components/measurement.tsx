@@ -10,11 +10,12 @@ import {
   Layers,
   Tag,
   Box,
+  MoreHorizontal,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useCadDrawingDetails } from '~/app/queries'
 import { cn } from '~/lib/utils'
-import { measurement } from '@prisma/client'
+import { measurement, other } from '@prisma/client'
 
 const tabs = [
   { key: 'info', label: 'Document Info', icon: Info },
@@ -23,11 +24,12 @@ const tabs = [
   { key: 'classifications', label: 'Classifications', icon: Tag },
   { key: 'features', label: 'Features', icon: Pencil },
   { key: 'assemblies', label: 'Assemblies', icon: Layers },
+  { key: 'others', label: 'Others', icon: MoreHorizontal },
 ]
 
-const Measurement = () => {
-  const { data, isLoading, error } = useCadDrawingDetails()
-  const [activeTab, setActiveTab] = useState('materials')
+const Measurement = ({ id }: { id?: string }) => {
+  const { data, isLoading, error } = useCadDrawingDetails(id)
+  const [activeTab, setActiveTab] = useState('info')
 
   const groupedMeasurements = useMemo(() => {
     if (!data?.data?.measurements) return {}
@@ -79,6 +81,18 @@ const Measurement = () => {
     )
   }, [data?.data?.materials])
 
+  const groupedOthers = useMemo(() => {
+    if (!data?.data?.other) return {}
+    return data.data.other.reduce((acc: Record<string, other[]>, other) => {
+      const category = other.category || 'miscellaneous'
+      if (!acc[category]) {
+        acc[category] = []
+      }
+      acc[category].push(other)
+      return acc
+    }, {})
+  }, [data?.data?.other])
+
   const formatSize = (measurement: measurement) => {
     if (!measurement) return ''
     if (measurement.size) return measurement.size
@@ -94,6 +108,18 @@ const Measurement = () => {
     }
 
     return `${value}${unit}`
+  }
+
+  const formatOtherValue = (other: other) => {
+    const parts = []
+
+    if (other.value) parts.push(other.value)
+    if (other.size) parts.push(`Size: ${other.size}`)
+    if (other.dimensions) parts.push(`Dimensions: ${other.dimensions}`)
+    if (other.quantity) parts.push(`Qty: ${other.quantity}`)
+    if (other.unit) parts.push(other.unit)
+
+    return parts.join(' | ') || '-'
   }
 
   if (isLoading) {
@@ -497,6 +523,91 @@ const Measurement = () => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'others' && (
+          <>
+            {Object.keys(groupedOthers).length > 0 ? (
+              Object.keys(groupedOthers).map((category, index) => {
+                const others = groupedOthers[category] || []
+                const displayCategory = category.split('_').join(' ')
+                const formattedCategory =
+                  displayCategory.charAt(0).toUpperCase() +
+                  displayCategory.slice(1)
+
+                return (
+                  <div
+                    key={category}
+                    className={
+                      index < Object.keys(groupedOthers).length - 1
+                        ? 'border-b'
+                        : ''
+                    }
+                  >
+                    <div className="flex items-center justify-between bg-gray-100 px-4 py-3">
+                      <h3 className="font-medium text-gray-700">
+                        {formattedCategory}
+                      </h3>
+                      <div className="flex space-x-2">
+                        <button className="text-gray-500 hover:text-gray-700">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button className="text-gray-500 hover:text-red-500">
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Table header */}
+                    <div className="grid grid-cols-3 px-4 py-2 text-sm text-gray-500">
+                      <div>Name</div>
+                      <div>Value & Details</div>
+                      <div>Description</div>
+                    </div>
+
+                    {/* Table rows */}
+                    {others.length > 0 ? (
+                      others.map((other) => (
+                        <div
+                          key={other.id}
+                          className="grid grid-cols-3 border-t px-4 py-3"
+                        >
+                          <div className="font-medium text-gray-800">
+                            {other.name}
+                          </div>
+                          <div className="text-sm text-gray-800">
+                            {formatOtherValue(other)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {other.description || other.specification || '-'}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="grid grid-cols-3 border-t px-4 py-3">
+                        <div className="text-gray-800">No items found</div>
+                        <div className="text-gray-800">-</div>
+                        <div className="text-gray-800">-</div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            ) : (
+              <div className="border-b">
+                <div className="flex items-center justify-between bg-gray-100 px-4 py-3">
+                  <h3 className="font-medium text-gray-700">Others</h3>
+                </div>
+                <div className="grid grid-cols-3 border-t px-4 py-3">
+                  <div className="text-gray-800">
+                    No other information found
+                  </div>
+                  <div className="text-gray-800">-</div>
+                  <div className="text-gray-800">-</div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

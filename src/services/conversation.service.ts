@@ -70,7 +70,7 @@ export class ConversationService {
     conversationId: string,
     role: MessageRole,
     content: string,
-    imageUrls?: string[] | null,
+    imageUrls?: string[] | null
   ) {
     const message = await prisma.message.create({
       data: {

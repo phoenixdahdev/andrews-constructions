@@ -41,11 +41,9 @@ export const generateId = (length: number = 14): string => {
   return result
 }
 
-
 export function sanitizeText(text: string) {
-  return text.replace('<has_function_call>', '');
+  return text.replace('<has_function_call>', '')
 }
-
 
 export const base64ToBlob = (base64: string, contentType: string): Blob => {
   const byteCharacters = atob(base64)

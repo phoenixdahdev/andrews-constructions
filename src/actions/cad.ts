@@ -168,13 +168,7 @@ export async function get_cad_details() {
       }
     }
 
-    if (
-      !cad.classifications ||
-      !cad.materials ||
-      !cad.measurements ||
-      cad.measurements.length === 0 ||
-      cad.materials.length === 0
-    ) {
+    if (!cad.document_info) {
       const baseUrl = process.env.BASE_URL
         ? `${process.env.BASE_URL}`
         : 'http://localhost:3000'
@@ -197,17 +191,31 @@ export async function get_cad_details() {
         }
       }
       const analysis = await res.json()
-      console.dir(analysis, { depth: null })
       const data = analysis.analysis
 
       await db.$transaction(async (tx) => {
-        await tx.document_info.create({
-          data: {
-            drawing_id: cad.id,
-            ...data.document_info,
-          },
+        const existing_drawing = await prisma.document_info.findFirst({
+          where: { drawing_id: cad.id },
         })
-
+        if (existing_drawing) {
+          await tx.document_info.upsert({
+            where: { drawing_id: cad.id },
+            update: {
+              ...data.document_info,
+            },
+            create: {
+              drawing_id: cad.id,
+              ...data.document_info,
+            },
+          })
+        } else {
+          await tx.document_info.create({
+            data: {
+              drawing_id: cad.id,
+              ...data.document_info,
+            },
+          })
+        }
         const measurementPromises = []
 
         if (data.measurements && data.measurements.length > 0) {
@@ -441,6 +449,28 @@ export async function get_cad_details() {
           await Promise.all(assemblyPromises)
         }
 
+        if (data.others?.length) {
+          const othersPromises = data.others.map((other: any) =>
+            tx.other.create({
+              data: {
+                drawing_id: cad.id,
+                category: other.category,
+                name: other.name,
+                value: other.value,
+                description: other.description,
+                size: other.size,
+                dimensions: other.dimensions,
+                unit: other.unit,
+                quantity: other.quantity,
+                x_coordinate: other.x_coordinate,
+                y_coordinate: other.y_coordinate,
+                specification: other.specification,
+              },
+            })
+          )
+          await Promise.all(othersPromises)
+        }
+
         return {
           success: true,
           error: null,
@@ -457,6 +487,7 @@ export async function get_cad_details() {
               classifications: true,
               features: true,
               assemblies: true,
+              other: true,
             },
           }),
         }

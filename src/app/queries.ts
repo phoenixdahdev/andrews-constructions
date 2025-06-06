@@ -19,11 +19,16 @@ export const useCadDrawingById = () => {
   })
 }
 
-export const useCadDrawingDetails = () => {
+export const useCadDrawingDetails = (id?: string) => {
   return useQuery({
-    queryKey: ['cad_drawing_details'],
+    queryKey: ['cad_drawing_details', id],
     queryFn: async () => {
       return await get_cad_details()
     },
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    staleTime: 0, // Data is immediately stale
+    gcTime: 0, // Garbage collect immediately
   })
 }

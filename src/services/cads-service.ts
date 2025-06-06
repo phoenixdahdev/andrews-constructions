@@ -44,6 +44,7 @@ export async function get_full_cad_details(id: string) {
       features: true,
       assemblies: true,
       classifications: true,
+      other: true,
     },
   })
 }

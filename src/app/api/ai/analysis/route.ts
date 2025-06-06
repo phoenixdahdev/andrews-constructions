@@ -1,9 +1,218 @@
-import { generateText } from 'ai'
+import { generateObject } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-// export const runtime = "edge";
-// export const maxDuration = 60
+const constructionAnalysisSchema = z.object({
+  document_type: z.string(),
+  measurements: z.object({
+    structural_elements: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+    rooms: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+    components: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+    spacings: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+    thicknesses: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+    total_thicknesses: z.array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        value: z.number().optional(),
+        unit: z.string().optional(),
+        x_coordinate: z.number().optional(),
+        y_coordinate: z.number().optional(),
+      })
+    ),
+  }),
+  materials: z.object({
+    structural: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    insulation: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    fire_protection: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    membranes: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    fasteners: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    sheathing: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+    surface_materials: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        unit_price: z.number().optional(),
+        currency: z.string().optional(),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+      })
+    ),
+  }),
+  classifications: z.object({
+    fire_ratings: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        category: z.string().optional(),
+      })
+    ),
+    environmental: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        category: z.string().optional(),
+      })
+    ),
+    standards_compliance: z.array(
+      z.object({
+        name: z.string(),
+        specification: z.string(),
+        category: z.string().optional(),
+      })
+    ),
+  }),
+  assemblies: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
+  features: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
+  document_info: z.object({
+    title: z.string(),
+    reference: z.string(),
+    date: z.string(),
+    revision: z.string(),
+    author: z.string(),
+    project: z.string(),
+    client: z.string(),
+  }),
+  others: z.array(
+    z.object({
+      category: z.string(),
+      name: z.string(),
+      value: z.string(),
+      description: z.string().optional(),
+      size: z.string().optional(),
+      dimensions: z.string().optional(),
+      unit: z.string().optional(),
+      quantity: z.number().optional(),
+      x_coordinate: z.number().optional(),
+      y_coordinate: z.number().optional(),
+      specification: z.string().optional(),
+    })
+  ),
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,97 +248,63 @@ Parse ALL measurements exactly as they appear in the document, maintaining both 
 
 IMPORTANT: First identify what TYPE of construction document this is (floor plan, roof plan, elevation, section, etc.) and adapt your analysis accordingly. Do not force residential categories onto commercial documents or vice versa.
 
-Organize the information into two main categories - measurements and materials:
+For measurements, include:
+- Exact size as text (e.g., "8 x 8 x 16 inches")
+- Numerical value when possible (convert to consistent unit)
+- Unit of measurement
+- Coordinates if identifiable on the drawing
 
-1. MEASUREMENTS: All dimensional information, sizes, thicknesses, spacings, areas, volumes
-2. MATERIALS: All materials specifications, types, brands, models, performance ratings
+For materials, include:
+- Complete specifications
+- Quantities when mentioned
+- Unit prices if available
+- Categories and descriptions
 
-Format your analysis to match exactly this structure:
-{
-  "document_type": "[Identify document type - floor plan, roof plan, elevation, etc.]",
-  "measurements": {
-    "structural_elements": [
-      { "name": "[Element name]", "size": "[Exact dimensions as shown]" }
-    ],
-    "rooms": [
-      { "name": "[Room name]", "size": "[Exact dimensions as shown]" }
-    ],
-    "components": [
-      { "name": "[Component name]", "size": "[Exact dimensions as shown]" }
-    ],
-    "spacings": [
-      { "name": "[Spacing name]", "size": "[Exact spacing as shown]" }
-    ],
-    "thicknesses": [
-      { "name": "[Layer/element name]", "size": "[Exact thickness as shown]" }
-    ],
-    "total_thicknesses": [
-      { "name": "[Assembly name]", "size": "[Total thickness as shown]" }
-    ]
-  },
-  "materials": {
-    "structural": [
-      { "name": "[Material name]", "specification": "[Full specification as shown]" }
-    ],
-    "insulation": [
-      { "name": "[Insulation type]", "specification": "[Full specification as shown]" }
-    ],
-    "fire_protection": [
-      { "name": "[Protection element]", "specification": "[Full specification as shown]" }
-    ],
-    "membranes": [
-      { "name": "[Membrane type]", "specification": "[Full specification as shown]" }
-    ],
-    "fasteners": [
-      { "name": "[Fastener type]", "specification": "[Full specification as shown]" }
-    ],
-    "sheathing": [
-      { "name": "[Sheathing material]", "specification": "[Full specification as shown]" }
-    ],
-    "surface_materials": [
-      { "name": "[Surface material]", "specification": "[Full specification as shown]" }
-    ]
-  },
-  "classifications": {
-    "fire_ratings": [
-      { "name": "[Rating name]", "specification": "[Full rating details]" }
-    ],
-    "environmental": [
-      { "name": "[Classification name]", "specification": "[Full classification details]" }
-    ],
-    "standards_compliance": [
-      { "name": "[Standard name]", "specification": "[Compliance details]" }
-    ]
-  },
-  "assemblies": [
-    { "name": "[Assembly name]", "description": "[Full assembly description]" }
-  ],
-  "features": [
-    { "name": "[Feature name]", "description": "[Full feature description]" }
-  ],
-  "document_info": {
-    "title": "[Document title]",
-    "reference": "[Document reference]",
-    "date": "[Document date]",
-    "revision": "[Revision number]",
-    "author": "[Author/company]",
-    "project": "[Project name]",
-    "client": "[Client name]"
-  }
-}
+CRITICAL: For ANY information that doesn't fit into the predefined categories (measurements, materials, classifications, assemblies, features, document_info), add it to the "others" array. This includes but is not limited to:
+- Unit types and designations (e.g., "UNIT TYPE 6", "UNIT TYPE 7a")
+- Equipment specifications (e.g., "R.W.P.", "H/L TV POINT")
+- Plant numbers and identifiers
+- Bay numbers and designations
+- Electrical specifications (voltage, amperage, model numbers)
+- HVAC equipment details
+- Facility requirements and calculations
+- Drawing references
+- Revision information
+- Any codes, numbers, or identifiers that appear in the document
+- Equipment model numbers and specifications
+- Operational requirements
+- Safety requirements
+- Access requirements
 
-Ensure that every single measurement is captured exactly as displayed in the document. Do not add or calculate conversions unless they're explicitly shown in the original.
+For the "others" section, provide comprehensive details:
+- Use "category" to group similar items (e.g., "Unit Designations", "Plant Numbers", "Electrical Equipment", "Bay Designations", "Drawing References")
+- Use "name" for the specific identifier or label
+- Use "value" for the associated value, specification, or description
+- Use "size" for dimensional information when applicable (e.g., "900 x 1200", "2400mm Wide x 1200mm")
+- Use "dimensions" for more complex dimensional descriptions
+- Use "unit" for measurement units
+- Use "quantity" for numerical quantities
+- Use "specification" for detailed technical specifications
+- Use "description" for additional context if needed
+- Include coordinates if the item has a specific location on the drawing
 
-Extract EVERY single piece of information from the document. If a category doesn't apply, include it as an empty array. If additional categories are needed to fully represent the document content, add them following the same structure pattern.
+Extract EVERY single piece of information from the document. If a category doesn't apply, include it as an empty array.
 
 For construction documents like roof plans or wall sections, pay special attention to:
 1. Layer-by-layer build-ups and their total thicknesses
 2. Material specifications including brand names, model numbers, and performance ratings
 3. Compliance with building codes and standards
 4. Assembly descriptions that explain how components fit together
-5. Special features like access hatches, joints, or penetrations`
-    const result = await generateText({
+5. Special features like access hatches, joints, or penetrations
+6. All annotations, labels, and reference numbers
+7. Equipment specifications and model numbers
+8. Plant numbers and facility designations
+9. Dimensional information for all components
+10. Coordinate positions where identifiable`
+
+    const result = await generateObject({
       model: openai('gpt-4-turbo'),
+      schema: constructionAnalysisSchema,
       messages: [
         {
           role: 'user',
@@ -148,32 +323,17 @@ For construction documents like roof plans or wall sections, pay special attenti
       ],
     })
 
-    let parsedResponse
-    try {
-      const textResponse = result.text
-      const jsonMatch =
-        textResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
-        textResponse.match(/\{[\s\S]*\}/)
+    console.log('Analysis result:', result.object)
 
-      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : textResponse
-      parsedResponse = JSON.parse(jsonString)
-    } catch (error) {
-      console.error('Failed to parse model response as JSON:', error)
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to parse model response as JSON',
-        rawResponse: result.text,
-      })
-    }
     return NextResponse.json({
       success: true,
-      analysis: parsedResponse,
+      analysis: result.object,
     })
   } catch (error) {
-    console.error('Error analyzing floor plan:', error)
+    console.error('Error analyzing construction document:', error)
     return NextResponse.json(
       {
-        error: 'Failed to analyze floor plan',
+        error: 'Failed to analyze construction document',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }

@@ -74,6 +74,7 @@ model cad_drawing {
   features        feature[]
   assemblies      assembly[]
   classifications classification[]
+  other           other[]
 
   @@index([user_id])
   @@map("cad_drawings")
@@ -201,6 +202,29 @@ model feature {
   @@map("features")
 }
 
+model other {
+  id            String      @id @default(uuid()) @db.Uuid
+  drawing_id    String      @db.Uuid
+  drawing       cad_drawing @relation(fields: [drawing_id], references: [id], onDelete: Cascade)
+  category      String
+  name          String
+  value         String
+  description   String?
+  size          String?
+  dimensions    String?
+  unit          String?
+  quantity      Float?
+  x_coordinate  Float?
+  y_coordinate  Float?
+  specification String?
+  created_at    DateTime    @default(now()) @db.Timestamptz()
+  updated_at    DateTime    @updatedAt @db.Timestamptz()
+
+  @@index([drawing_id])
+  @@index([category])
+  @@map("others")
+}
+
 model testimonial {
   id          String   @id @default(uuid()) @db.Uuid
   name        String
@@ -251,7 +275,7 @@ model message {
   conversation   conversation @relation("conversation_messages", fields: [conversationId], references: [id], onDelete: Cascade)
   role           MessageRole
   content        String
-  image_urls      String[]
+  image_urls     String[]
   metadata       Json?
   created_at     DateTime     @default(now()) @db.Timestamptz()
 
