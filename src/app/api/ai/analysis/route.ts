@@ -1,7 +1,7 @@
-import { generateObject } from 'ai'
-import { openai } from '@ai-sdk/openai'
-import { type NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { generateObject } from "ai"
+import { openai } from "@ai-sdk/openai"
+import { type NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 
 const constructionAnalysisSchema = z.object({
   document_type: z.string(),
@@ -10,61 +10,61 @@ const constructionAnalysisSchema = z.object({
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
     rooms: z.array(
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
     components: z.array(
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
     spacings: z.array(
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
     thicknesses: z.array(
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
     total_thicknesses: z.array(
       z.object({
         name: z.string(),
         size: z.string(),
-        value: z.number().optional(),
-        unit: z.string().optional(),
-        x_coordinate: z.number().optional(),
-        y_coordinate: z.number().optional(),
-      })
+        value: z.number().nullish(),
+        unit: z.string().nullish(),
+        x_coordinate: z.number().nullish(),
+        y_coordinate: z.number().nullish(),
+      }),
     ),
   }),
   materials: z.object({
@@ -72,85 +72,85 @@ const constructionAnalysisSchema = z.object({
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     insulation: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     fire_protection: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     membranes: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     fasteners: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     sheathing: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
     surface_materials: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        description: z.string().optional(),
-        category: z.string().optional(),
-        unit_price: z.number().optional(),
-        currency: z.string().optional(),
-        quantity: z.number().optional(),
-        unit: z.string().optional(),
-      })
+        description: z.string().nullish(),
+        category: z.string().nullish(),
+        unit_price: z.number().nullish(),
+        currency: z.string().nullish(),
+        quantity: z.number().nullish(),
+        unit: z.string().nullish(),
+      }),
     ),
   }),
   classifications: z.object({
@@ -158,59 +158,59 @@ const constructionAnalysisSchema = z.object({
       z.object({
         name: z.string(),
         specification: z.string(),
-        category: z.string().optional(),
-      })
+        category: z.string().nullish(),
+      }),
     ),
     environmental: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        category: z.string().optional(),
-      })
+        category: z.string().nullish(),
+      }),
     ),
     standards_compliance: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
-        category: z.string().optional(),
-      })
+        category: z.string().nullish(),
+      }),
     ),
   }),
   assemblies: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
-    })
+    }),
   ),
   features: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
-    })
+    }),
   ),
   document_info: z.object({
-    title: z.string(),
-    reference: z.string(),
-    date: z.string(),
-    revision: z.string(),
-    author: z.string(),
-    project: z.string(),
-    client: z.string(),
+    title: z.string().nullish(),
+    reference: z.string().nullish(),
+    date: z.string().nullish(),
+    revision: z.string().nullish(),
+    author: z.string().nullish(),
+    project: z.string().nullish(),
+    client: z.string().nullish(),
   }),
   others: z.array(
     z.object({
       category: z.string(),
       name: z.string(),
       value: z.string(),
-      description: z.string().optional(),
-      size: z.string().optional(),
-      dimensions: z.string().optional(),
-      unit: z.string().optional(),
-      quantity: z.number().optional(),
-      x_coordinate: z.number().optional(),
-      y_coordinate: z.number().optional(),
-      specification: z.string().optional(),
-    })
+      description: z.string().nullish(),
+      size: z.string().nullish(),
+      dimensions: z.string().nullish(),
+      unit: z.string().nullish(),
+      quantity: z.number().nullish(),
+      x_coordinate: z.number().nullish(),
+      y_coordinate: z.number().nullish(),
+      specification: z.string().nullish(),
+    }),
   ),
 })
 
@@ -218,14 +218,11 @@ export async function POST(req: NextRequest) {
   try {
     const { file_url, file_type } = await req.json()
 
-    console.log('Received file_url:', file_url)
-    console.log('Received file_type:', file_type)
+    console.log("Received file_url:", file_url)
+    console.log("Received file_type:", file_type)
 
     if (!file_url) {
-      return NextResponse.json(
-        { error: 'No file URL provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "No file URL provided" }, { status: 400 })
     }
 
     const response = await fetch(file_url)
@@ -234,7 +231,7 @@ export async function POST(req: NextRequest) {
         {
           error: `Failed to fetch file from URL: ${response.status} ${response.statusText}`,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -288,6 +285,8 @@ For the "others" section, provide comprehensive details:
 - Use "description" for additional context if needed
 - Include coordinates if the item has a specific location on the drawing
 
+IMPORTANT: If any field doesn't have a value, you can set it to null or omit it entirely.
+
 Extract EVERY single piece of information from the document. If a category doesn't apply, include it as an empty array.
 
 For construction documents like roof plans or wall sections, pay special attention to:
@@ -303,18 +302,18 @@ For construction documents like roof plans or wall sections, pay special attenti
 10. Coordinate positions where identifiable`
 
     const result = await generateObject({
-      model: openai('gpt-4-turbo'),
+      model: openai("gpt-4-turbo"),
       schema: constructionAnalysisSchema,
       messages: [
         {
-          role: 'user',
+          role: "user",
           content: [
             {
-              type: 'text',
+              type: "text",
               text: prompt,
             },
             {
-              type: 'file',
+              type: "file",
               mimeType: file_type,
               data: new Uint8Array(fileBuffer),
             },
@@ -322,21 +321,18 @@ For construction documents like roof plans or wall sections, pay special attenti
         },
       ],
     })
-
-    console.log('Analysis result:', result.object)
-
     return NextResponse.json({
       success: true,
       analysis: result.object,
     })
   } catch (error) {
-    console.error('Error analyzing construction document:', error)
+    console.error("Error analyzing construction document:", error)
     return NextResponse.json(
       {
-        error: 'Failed to analyze construction document',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: "Failed to analyze construction document",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
