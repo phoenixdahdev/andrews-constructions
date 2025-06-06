@@ -12,6 +12,7 @@ import { Paperclip, ArrowUp, X, Loader2 } from 'lucide-react'
 import BlurImage from '~/components/miscellaneous/blur-image'
 import { useAIDrawerStore } from '~/hooks/use-ai-drawer-store'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from 'ui/sheet'
+import { useConversationById } from '~/app/queries'
 
 interface ImagePreview {
   file: File
@@ -26,6 +27,11 @@ export interface UploadedFile {
 }
 
 export function AIOptimizer() {
+  const {
+    data: conversationData,
+    isLoading: isLoadingConversation,
+    refetch,
+  } = useConversationById()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const { isOpen, openDrawer, closeDrawer } = useAIDrawerStore()
@@ -63,6 +69,25 @@ export function AIOptimizer() {
     scrollToBottom()
   }, [messages])
 
+  useEffect(() => {
+    if (conversationData?.messages) {
+      const chatMessages = conversationData.messages.map((message) => ({
+        id: message.id,
+        role: message.role.toLowerCase() as 'user' | 'assistant',
+        content: message.content,
+        ...(message.image_urls &&
+          message.image_urls.length > 0 && {
+            experimental_attachments: message.image_urls.map((url, index) => ({
+              name: `image_${index + 1}`,
+              contentType: 'image/jpeg',
+              url: url,
+            })),
+          }),
+      }))
+      setMessages(chatMessages)
+    }
+  }, [conversationData, setMessages])
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -73,6 +98,7 @@ export function AIOptimizer() {
   const handleOpenChange = async (open: boolean) => {
     if (open) {
       openDrawer()
+      refetch()
     } else {
       setMessages([])
       closeDrawer()
@@ -323,7 +349,7 @@ export function AIOptimizer() {
                   placeholder="Ask AI to optimize CAD, materials, or measurement..."
                   value={input}
                   className="py-6 pr-24"
-                  disabled={isUploading}
+                  disabled={isUploading || isLoadingConversation}
                   onKeyDown={handleKeyDown}
                   onChange={handleInputChange}
                 />
@@ -359,7 +385,7 @@ export function AIOptimizer() {
               accept="image/*"
               className="hidden"
               ref={fileInputRef}
-              disabled={isUploading}
+              disabled={isUploading || isLoadingConversation}
               onChange={(e) => handleImageSelect(e.target.files)}
             />
           </div>

@@ -1,7 +1,7 @@
-import { generateObject } from "ai"
-import { openai } from "@ai-sdk/openai"
-import { type NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
+import { generateObject } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 const constructionAnalysisSchema = z.object({
   document_type: z.string(),
@@ -14,7 +14,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
     rooms: z.array(
       z.object({
@@ -24,7 +24,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
     components: z.array(
       z.object({
@@ -34,7 +34,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
     spacings: z.array(
       z.object({
@@ -44,7 +44,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
     thicknesses: z.array(
       z.object({
@@ -54,7 +54,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
     total_thicknesses: z.array(
       z.object({
@@ -64,7 +64,7 @@ const constructionAnalysisSchema = z.object({
         unit: z.string().nullish(),
         x_coordinate: z.number().nullish(),
         y_coordinate: z.number().nullish(),
-      }),
+      })
     ),
   }),
   materials: z.object({
@@ -78,7 +78,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     insulation: z.array(
       z.object({
@@ -90,7 +90,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     fire_protection: z.array(
       z.object({
@@ -102,7 +102,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     membranes: z.array(
       z.object({
@@ -114,7 +114,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     fasteners: z.array(
       z.object({
@@ -126,7 +126,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     sheathing: z.array(
       z.object({
@@ -138,7 +138,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
     surface_materials: z.array(
       z.object({
@@ -150,7 +150,7 @@ const constructionAnalysisSchema = z.object({
         currency: z.string().nullish(),
         quantity: z.number().nullish(),
         unit: z.string().nullish(),
-      }),
+      })
     ),
   }),
   classifications: z.object({
@@ -159,34 +159,34 @@ const constructionAnalysisSchema = z.object({
         name: z.string(),
         specification: z.string(),
         category: z.string().nullish(),
-      }),
+      })
     ),
     environmental: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
         category: z.string().nullish(),
-      }),
+      })
     ),
     standards_compliance: z.array(
       z.object({
         name: z.string(),
         specification: z.string(),
         category: z.string().nullish(),
-      }),
+      })
     ),
   }),
   assemblies: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
-    }),
+    })
   ),
   features: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
-    }),
+    })
   ),
   document_info: z.object({
     title: z.string().nullish(),
@@ -210,7 +210,7 @@ const constructionAnalysisSchema = z.object({
       x_coordinate: z.number().nullish(),
       y_coordinate: z.number().nullish(),
       specification: z.string().nullish(),
-    }),
+    })
   ),
 })
 
@@ -218,11 +218,14 @@ export async function POST(req: NextRequest) {
   try {
     const { file_url, file_type } = await req.json()
 
-    console.log("Received file_url:", file_url)
-    console.log("Received file_type:", file_type)
+    console.log('Received file_url:', file_url)
+    console.log('Received file_type:', file_type)
 
     if (!file_url) {
-      return NextResponse.json({ error: "No file URL provided" }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No file URL provided' },
+        { status: 400 }
+      )
     }
 
     const response = await fetch(file_url)
@@ -231,7 +234,7 @@ export async function POST(req: NextRequest) {
         {
           error: `Failed to fetch file from URL: ${response.status} ${response.statusText}`,
         },
-        { status: 400 },
+        { status: 400 }
       )
     }
 
@@ -302,18 +305,18 @@ For construction documents like roof plans or wall sections, pay special attenti
 10. Coordinate positions where identifiable`
 
     const result = await generateObject({
-      model: openai("gpt-4-turbo"),
+      model: openai('gpt-4-turbo'),
       schema: constructionAnalysisSchema,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: [
             {
-              type: "text",
+              type: 'text',
               text: prompt,
             },
             {
-              type: "file",
+              type: 'file',
               mimeType: file_type,
               data: new Uint8Array(fileBuffer),
             },
@@ -326,13 +329,13 @@ For construction documents like roof plans or wall sections, pay special attenti
       analysis: result.object,
     })
   } catch (error) {
-    console.error("Error analyzing construction document:", error)
+    console.error('Error analyzing construction document:', error)
     return NextResponse.json(
       {
-        error: "Failed to analyze construction document",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to analyze construction document',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
